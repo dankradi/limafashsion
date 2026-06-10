@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lime.Fashion — Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        /* =============================================
+           RESET & ROOT TOKENS
+        ============================================= */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        :root {
+            --lime: #C5F135; --lime-hover: #d4f75a; --lime-muted: rgba(197, 241, 53, 0.12);
+            --lime-border: rgba(197, 241, 53, 0.3); --black: #080808; --dark: #101010;
+            --dark2: #161616; --dark3: #1e1e1e; --dark4: #252525;
+            --border: rgba(255, 255, 255, 0.08); --border-strong: rgba(255, 255, 255, 0.15);
+            --white: #ffffff; --grey: #888; --grey2: #aaa; 
+            --success: #22c55e; --error: #ef4444; --warning: #f59e0b; --info: #3b82f6;
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'Outfit', system-ui, sans-serif;
+            --radius-md: 12px; --radius-xl: 24px; --radius-pill: 999px;
+            --shadow-lime: 0 8px 40px rgba(197, 241, 53, 0.2);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background: var(--black); color: var(--white); font-family: var(--font-body);
+            display: flex; min-height: 100vh; overflow-x: hidden;
+        }
+        
+        select option { background-color: #1e1e1e; color: #ffffff; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--dark); }
+        ::-webkit-scrollbar-thumb { background: var(--dark4); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--lime); }
+
+        /* =============================================
+           SIDEBAR & MOBILE HEADER
+        ============================================= */
+        .mobile-header { display: none; }
+
+        .sidebar {
+            width: 260px; background: var(--dark); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 30px 20px; position: fixed; height: 100vh;
+            z-index: 1000; transition: transform 0.3s ease;
+        }
+        .logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; margin-bottom: 50px; cursor: pointer; text-align: center; }
+        .logo span { color: var(--lime); }
+        
+        .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 8px; flex: 1;}
+        .nav-menu li a {
+            display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: var(--grey2);
+            text-decoration: none; border-radius: var(--radius-md); font-weight: 500;
+            transition: var(--transition); cursor: pointer; font-size: 0.95rem;
+        }
+        .nav-menu li a:hover { background: var(--dark2); color: var(--white); }
+        .nav-menu li a.active { background: var(--lime-muted); color: var(--lime); border: 1px solid var(--lime-border); }
+        
+        .logout-btn {
+            background: transparent; color: var(--error); border: 1px solid rgba(239, 68, 68, 0.3); margin-top: auto;
+            border-radius: var(--radius-md); padding: 14px; width: 100%; cursor: pointer; font-family: var(--font-body); font-weight: 600; transition: var(--transition);
+        }
+        .logout-btn:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--error); }
+
+        /* =============================================
+           MAIN LAYOUT AND TABS
+        ============================================= */
+        .main-content { margin-left: 260px; flex: 1; padding: 40px 5%; background: var(--black); transition: margin-left 0.3s ease; }
+        
+        .admin-tab { display: none; animation: fadeIn 0.4s ease forwards; }
+        .admin-tab.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* HEADER */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .header h1 { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; }
+        
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+        .search-bar { background: var(--dark2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 10px 20px; display: flex; align-items: center; gap: 10px; width: 280px; }
+        .search-bar input { background: transparent; border: none; color: var(--white); outline: none; width: 100%; font-family: var(--font-body); font-size: 0.9rem;}
+        
+        .user-profile { display: flex; align-items: center; gap: 12px; background: var(--dark2); border-radius: var(--radius-pill); padding: 6px 14px 6px 6px; border: 1px solid var(--border); cursor: pointer; transition: var(--transition);}
+        .user-profile:hover { border-color: var(--border-strong); }
+        .user-avatar { width: 36px; height: 36px; background: var(--lime); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--black); font-weight: 800; font-size: 0.9rem;}
+
+        /* STAT CARDS */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 40px; }
+        .stat-card { background: var(--dark2); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px; transition: var(--transition); }
+        .stat-card:hover { transform: translateY(-3px); border-color: var(--border-strong); background: var(--dark3);}
+        .stat-title { color: var(--grey2); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px;}
+        .stat-value { font-family: var(--font-display); font-size: 2.2rem; font-weight: 700; color: var(--lime); margin-bottom: 10px;}
+        .stat-diff { font-size: 0.85rem; display: flex; align-items: center; gap: 6px;}
+        .diff-up { color: var(--lime); background: var(--lime-muted); padding: 2px 8px; border-radius: 6px; font-weight: 600;}
+        .diff-down { color: var(--error); background: rgba(239, 68, 68, 0.1); padding: 2px 8px; border-radius: 6px; font-weight: 600;}
+
+        /* CHART & TABLE LAYOUT */
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 40px;}
+        
+        .panel { background: var(--dark2); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 30px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .panel-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; }
+        
+        /* TABLE STYLES */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 400px;}
+        th { text-align: left; color: var(--grey2); font-size: 0.85rem; text-transform: uppercase; padding-bottom: 15px; border-bottom: 1px solid var(--border); font-weight: 500;}
+        td { padding: 18px 0; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        tr:last-child td { border-bottom: none; padding-bottom: 0; }
+        
+        .status-pill { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block;}
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3);}
+        .status-walk-in-sale { background: rgba(59, 130, 246, 0.1); color: var(--info); border: 1px solid rgba(59, 130, 246, 0.3);}
+        .status-delivered { background: var(--lime-muted); color: var(--lime); border: 1px solid var(--lime-border);}
+
+        .btn-lime { background: var(--lime); color: var(--black); border: none; border-radius: var(--radius-pill); padding: 8px 20px; font-weight: 700; font-family: var(--font-body); cursor: pointer; transition: var(--transition);}
+        .btn-lime:hover { background: var(--lime-hover); box-shadow: var(--shadow-lime); transform: translateY(-2px);}
+
+        /* =============================================
+           RESPONSIVE DESIGN (MOBILE)
+        ============================================= */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-header { 
+                display: flex; justify-content: space-between; align-items: center; 
+                padding: 15px 5%; background: rgba(16,16,16,0.95); backdrop-filter: blur(10px);
+                position: fixed; top: 0; left: 0; width: 100%; z-index: 1001; 
+                border-bottom: 1px solid var(--border);
+            }
+            .mobile-logo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 900; }
+            .mobile-logo span { color: var(--lime); }
+            .hamburger { background: transparent; border: none; color: var(--white); font-size: 1.8rem; cursor: pointer; }
+
+            .sidebar { transform: translateX(-100%); width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            
+            .main-content { margin-left: 0; padding: 100px 5% 40px; }
+            
+            .header { flex-direction: column; align-items: flex-start; gap: 20px; margin-bottom: 30px;}
+            .header-actions { width: 100%; justify-content: space-between; }
+            .search-bar { width: 100%; max-width: 250px; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .header-actions { flex-direction: column; align-items: stretch; }
+            .search-bar { max-width: 100%; }
+        }
+
+        /* OVERLAY FOR MOBILE SIDEBAR */
+        .sidebar-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+
+        /* Multi-image uploader widget styles */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.1s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .progress-ring {
+            animation: spin 2s linear infinite;
+        }
+    </style>
+</head>
+    <!-- ADMIN LOGIN OVERLAY (credential-based — managed by Super Admin) -->
+    <div id="adminLoginOverlay" style="position:fixed; inset:0; background:var(--black); z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+        <div style="background:var(--dark2); border:1px solid var(--border); border-radius:24px; padding:48px 40px; width:100%; max-width:420px; box-shadow:0 20px 80px rgba(0,0,0,0.6);">
+            <div class="logo" style="font-size:2.5rem; margin-bottom:4px; text-align:center;">Lime<span>.</span>Admin</div>
+            <p style="text-align:center; color:var(--grey); margin-bottom:32px; font-size:0.9rem;">Enter your credentials to continue</p>
+
+            <!-- Account selector -->
+            <div style="display:flex; gap:10px; margin-bottom:24px;">
+                <button id="loginBtnAccra" onclick="selectAccount('accra', this)"
+                    style="flex:1; padding:10px; border-radius:var(--radius-pill); font-weight:700; font-family:var(--font-body); cursor:pointer; border:2px solid var(--lime); background:var(--lime); color:var(--black); font-size:0.9rem; transition:var(--transition);">
+                    🌍 Accra
+                </button>
+                <button id="loginBtnHo" onclick="selectAccount('ho', this)"
+                    style="flex:1; padding:10px; border-radius:var(--radius-pill); font-weight:700; font-family:var(--font-body); cursor:pointer; border:2px solid var(--border); background:transparent; color:var(--grey2); font-size:0.9rem; transition:var(--transition);">
+                    📍 Ho
+                </button>
+            </div>
+
+            <input id="adminLoginUser" type="text" placeholder="Username"
+                style="width:100%; padding:13px 16px; background:var(--dark3); color:var(--white); border:1px solid var(--border); border-radius:10px; font-family:var(--font-body); font-size:1rem; outline:none; margin-bottom:14px; transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='var(--lime)'" onblur="this.style.borderColor='var(--border)'">
+
+            <input id="adminLoginPass" type="password" placeholder="Password"
+                style="width:100%; padding:13px 16px; background:var(--dark3); color:var(--white); border:1px solid var(--border); border-radius:10px; font-family:var(--font-body); font-size:1rem; outline:none; margin-bottom:18px; transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='var(--lime)'" onblur="this.style.borderColor='var(--border)'"
+                onkeydown="if(event.key==='Enter') doAdminLogin()">
+
+            <div id="adminLoginError" style="display:none; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:0.9rem;"></div>
+
+            <button class="btn-lime" style="width:100%; padding:14px; font-size:1rem;" onclick="doAdminLogin()" id="doLoginBtn">Sign In</button>
+
+            <p style="text-align:center; color:var(--grey); margin-top:20px; font-size:0.78rem;">
+                🔒 Account access granted by Super Admin only
+            </p>
+        </div>
+    </div>
+
+    <!-- MOBILE OVERLAY & HEADER -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="mobile-header">
+        <div class="mobile-logo">Lime<span>.</span>Admin</div>
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">Lime<span>.</span>Admin</div>
+        <ul class="nav-menu">
+            <li><a class="active" onclick="switchTab('overview')">📊 Overview</a></li>
+            <li><a onclick="switchTab('products')">👗 Products</a></li>
+            <li><a onclick="switchTab('orders')">📦 Orders</a></li>
+            <li><a onclick="switchTab('customers')">👥 Customers</a></li>
+            <li><a onclick="switchTab('analytics')">📈 Analytics</a></li>
+            <li><a onclick="switchTab('livechat')" id="navLiveChat" style="position:relative;">💬 Live Chat <span id="chatBadge" style="display:none; background:#ef4444; color:white; border-radius:999px; font-size:0.65rem; font-weight:800; padding:2px 7px; margin-left:6px; vertical-align:middle;"></span></a></li>
+        </ul>
+        <button class="logout-btn" onclick="logoutAdmin()">Log Out</button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- ==================== OVERVIEW TAB ==================== -->
+        <div id="tab-overview" class="admin-tab active">
+            <header class="header">
+                <h1>Dashboard</h1>
+                <div class="header-actions">
+                    <button class="btn-primary btn-sm" onclick="openWalkInModal()" style="padding: 10px 20px; font-weight: 700; border-radius: 999px;">+ Walk-In Sale</button>
+                    <div class="search-bar">
+                        <span>🔍</span>
+                        <input type="text" placeholder="Search orders, clients...">
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar" id="adminAvatar">--</div>
+                        <span style="font-weight: 500; font-size: 0.9rem;" id="adminName">Select Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- STATS -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Revenue</div>
+                    <div class="stat-value" id="dashRev">GH₵ 0</div>
+                    <div class="stat-diff"><span class="grey">Based on visible orders</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Active Orders</div>
+                    <div class="stat-value" id="dashOrderCount">0</div>
+                    <div class="stat-diff"><span class="grey">In your region belt</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Total Customers</div>
+                    <div class="stat-value">--</div>
+                    <div class="stat-diff"><span class="grey">Global access</span></div>
+                </div>
+                <div class="stat-card" style="display:flex; flex-direction:column; max-height: 180px;">
+                    <div class="stat-title">Assigned Inventory</div>
+                    <div id="assignedInventoryList" style="flex:1; overflow-y:auto; font-size:0.9rem; color:var(--grey2); margin-top:5px; padding-right:5px;">
+                        <!-- JS injected -->
+                        <span class="grey">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTS & TABLES -->
+            <div class="dashboard-grid">
+                <!-- REVENUE CHART -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Revenue Overview</h2>
+                        <select style="background: var(--dark3); color: var(--white); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; outline: none; font-family: var(--font-body);">
+                            <option>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                            <option>This Year</option>
+                        </select>
+                    </div>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- RECENT ORDERS -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Recent Orders</h2>
+                        <button class="btn-lime" style="padding: 6px 14px; font-size: 0.8rem;" onclick="switchTab('orders')">View All</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashRecentOrders">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PRODUCTS TAB ==================== -->
+        <div id="tab-products" class="admin-tab">
+            <header class="header">
+                <h1>Products Database</h1>
+            </header>
+            <div class="panel">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Icon</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Badge</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductsTable">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADD PRODUCT MODAL -->
+        <div id="addProductModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+            <div style="background: var(--dark2); padding: 30px; border-radius: var(--radius-xl); width: 400px; border: 1px solid var(--border);">
+                <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 20px;">Add New Product</h3>
+                <input id="pName" type="text" placeholder="Product Name (e.g. Silk Dress)" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                
+                <div style="margin-bottom:15px;">
+                    <label style="color:var(--grey2); font-size:0.85rem; display:block; margin-bottom:8px;">Product Images</label>
+                    <div id="imageUploadWrapper" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                        <div id="uploadTrigger" style="width:68px; height:68px; background:#10B981; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; font-size:2rem; font-weight:300; transition:background 0.2s;" onclick="document.getElementById('pImage').click()" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10B981'">
+                            +
+                        </div>
+                        <div id="imagePreviewContainer" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;"></div>
+                    </div>
+                    <input id="pImage" type="file" multiple accept="image/*" style="display:none;" onchange="handleImageSelection(event)">
+                    <span style="font-size:0.75rem; color:var(--grey); display:block; margin-top:8px;">You can select multiple pictures. Click an image to remove it.</span>
+                </div>
+                
+                <select id="pCat" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="WOMEN">Women's Collection</option>
+                    <option value="MEN">Men's Collection</option>
+                    <option value="CHILDREN">Children's Collection</option>
+                </select>
+
+                <input id="pPrice" type="number" placeholder="Price (GH₵)" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                <select id="pBadge" style="width:100%; margin-bottom:25px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                    <option value="">No Badge</option>
+                    <option value="NEW">NEW</option>
+                    <option value="HOT">HOT</option>
+                    <option value="BEST SELLER">BEST SELLER</option>
+                </select>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-lime" style="flex:1; padding: 12px; font-size:1rem;" onclick="saveNewProduct()">Save Product</button>
+                    <button style="flex:1; background:transparent; color:white; border:1px solid var(--border); border-radius:var(--radius-pill); font-weight:700; cursor:pointer;" onclick="closeAddProductModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== ORDERS TAB ==================== -->
+        <div id="tab-orders" class="admin-tab">
+            <header class="header">
+                <h1>Manage Orders</h1>
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Search invoices...">
+                </div>
+            </header>
+            <div class="panel">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date / Time</th>
+                                <th>Delivery Region</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminOrdersTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== OTHER TABS ==================== -->
+        <div id="tab-customers" class="admin-tab">
+            <header class="header"><h1>Customers</h1></header>
+            <div class="panel"><p class="grey">User CRM layout loads here.</p></div>
+        </div>
+        <div id="tab-analytics" class="admin-tab">
+            <header class="header"><h1>Detailed Analytics</h1></header>
+            <div class="panel"><p class="grey">Advanced metrics layout loads here.</p></div>
+        </div>
+
+        <!-- ==================== LIVE CHAT TAB ==================== -->
+        <div id="tab-livechat" class="admin-tab">
+            <header class="header">
+                <h1>💬 Live Chat</h1>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span id="adminChatRegionLabel" style="font-size:0.85rem; color:var(--grey2); background:var(--dark2); border:1px solid var(--border); border-radius:999px; padding:6px 14px;">Region: —</span>
+                    <button onclick="clearClosedChats()" style="background:transparent; color:var(--grey); border:1px solid var(--border); border-radius:999px; padding:6px 14px; font-size:0.8rem; font-weight:600; cursor:pointer; transition:var(--transition); font-family:var(--font-body);" onmouseover="this.style.borderColor='var(--white)'" onmouseout="this.style.borderColor='var(--border)'">Clear Closed</button>
+                </div>
+            </header>
+
+            <div style="display:grid; grid-template-columns:320px 1fr; gap:20px; height:calc(100vh - 180px);">
+
+                <!-- LEFT: Chat List -->
+                <div class="panel" style="display:flex; flex-direction:column; padding:0; overflow:hidden;">
+                    <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+                        <span style="font-weight:700; font-size:0.95rem;">Incoming Chats</span>
+                        <span id="chatListCount" style="background:var(--lime-muted); color:var(--lime); border:1px solid var(--lime-border); border-radius:999px; font-size:0.72rem; font-weight:700; padding:3px 10px;">0</span>
+                    </div>
+                    <div id="adminChatList" style="flex:1; overflow-y:auto; padding:10px;"></div>
+                </div>
+
+                <!-- RIGHT: Active Conversation -->
+                <div class="panel" style="display:flex; flex-direction:column; padding:0; overflow:hidden;">
+                    <!-- No chat selected -->
+                    <div id="chatEmptyState" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--grey);">
+                        <div style="font-size:3rem; margin-bottom:12px; opacity:0.5;">💬</div>
+                        <div style="font-weight:600; margin-bottom:4px;">No chat selected</div>
+                        <div style="font-size:0.85rem;">Select a conversation from the list</div>
+                    </div>
+                    <!-- Active chat view -->
+                    <div id="activeChatView" style="display:none; flex-direction:column; height:100%;">
+                        <!-- Chat Header -->
+                        <div style="padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+                            <div>
+                                <div style="font-weight:700; font-size:0.95rem;" id="activeChatTitle">Customer</div>
+                                <div style="color:var(--grey); font-size:0.78rem;" id="activeChatMeta">Region · Session ID</div>
+                            </div>
+                            <button id="closeChatBtn" onclick="closeSelectedChat()" style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:999px; padding:6px 14px; font-size:0.8rem; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:var(--transition);" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">Close Chat</button>
+                        </div>
+                        <!-- Messages -->
+                        <div id="adminChatMessages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; scroll-behavior:smooth;"></div>
+                        <!-- Reply Input -->
+                        <div style="padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:10px; align-items:flex-end; flex-shrink:0; background:var(--dark);">
+                            <textarea id="adminReplyInput" placeholder="Type your reply..." rows="1"
+                                style="flex:1; background:var(--dark3); color:var(--white); border:1px solid var(--border-strong); border-radius:12px; padding:10px 14px; font-family:var(--font-body); font-size:0.9rem; outline:none; resize:none; min-height:42px; max-height:120px; line-height:1.4; transition:border-color 0.2s;"
+                                onfocus="this.style.borderColor='var(--lime)'" onblur="this.style.borderColor='var(--border-strong)'"
+                                onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminReply(); }"
+                                oninput="this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,120)+'px';"></textarea>
+                            <button onclick="sendAdminReply()" style="background:var(--lime); color:var(--black); border:none; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:var(--transition);" onmouseover="this.style.background='var(--lime-hover)'; this.style.transform='scale(1.08)'" onmouseout="this.style.background='var(--lime)'; this.style.transform='scale(1)'">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- VIEW ORDER MODAL -->
+        <div id="viewOrderModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:5000; align-items:center; justify-content:center; backdrop-filter:blur(8px);">
+            <div style="background:var(--dark2); padding:30px; border-radius:var(--radius-xl); width:700px; max-width:95%; border:1px solid var(--border); box-shadow:0 20px 80px rgba(0,0,0,0.8); position:relative; display:flex; flex-direction:column; max-height: 90vh;">
+                
+                <button onclick="closeOrderModal()" style="position:absolute; top:20px; right:20px; background:var(--dark3); border:none; width:36px; height:36px; border-radius:50%; color:var(--white); font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='var(--primary)'" onmouseout="this.style.background='var(--dark3)'">&times;</button>
+
+                <!-- HEADER -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <div>
+                        <h2 id="modalOrderId" style="font-family:var(--font-display); font-size:1.8rem; letter-spacing:-0.5px;">#ORD-0000</h2>
+                        <p id="modalOrderDate" class="grey" style="font-size:0.9rem;">Date/Time</p>
+                    </div>
+                    <div>
+                        <span id="modalOrderStatus" class="status-pill status-pending" style="font-size:1rem; padding:6px 14px; text-transform:uppercase; letter-spacing:1px; border-radius:var(--radius-pill);">PENDING</span>
+                    </div>
+                </div>
+
+                <div style="flex:1; overflow-y:auto; padding-right:10px;">
+                    <div style="display:grid; grid-template-columns: 3fr 2fr; gap:30px;">
+                        
+                        <!-- LEFT: ITEMS -->
+                        <div>
+                            <h4 style="margin-bottom:15px; color:var(--grey2); font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">Ordered Items</h4>
+                            <div id="modalOrderItems" style="background:var(--dark3); border-radius:12px; padding:15px; border:1px solid var(--border);">
+                                <!-- JS injected elements go here -->
+                            </div>
+                            
+                            <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; font-family:var(--font-display); font-size:1.4rem; padding:0 5px;">
+                                <span>Total</span>
+                                <span id="modalOrderTotal" style="color:var(--lime);">GH₵ 0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: CUSTOMER -->
+                        <div>
+                            <h4 style="margin-bottom:15px; color:var(--grey2); font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">Customer Details</h4>
+                            <div style="background:var(--dark); border-radius:12px; padding:20px; border:1px solid var(--border);">
+                                <div style="margin-bottom:18px;">
+                                    <strong style="display:block; font-size:0.75rem; color:var(--grey); margin-bottom:4px; letter-spacing:0.5px;">NAME</strong>
+                                    <span id="modalCustName" style="font-size:0.95rem;">-</span>
+                                </div>
+                                <div style="margin-bottom:18px;">
+                                    <strong style="display:block; font-size:0.75rem; color:var(--grey); margin-bottom:4px; letter-spacing:0.5px;">PHONE</strong>
+                                    <span id="modalCustPhone" style="font-size:0.95rem;">-</span>
+                                </div>
+                                <div style="margin-bottom:18px;">
+                                    <strong style="display:block; font-size:0.75rem; color:var(--grey); margin-bottom:4px; letter-spacing:0.5px;">ADDRESS & CITY</strong>
+                                    <span id="modalCustAddress" style="font-size:0.95rem; line-height:1.4; display:block;">-</span>
+                                </div>
+                                <div>
+                                    <strong style="display:block; font-size:0.75rem; color:var(--grey); margin-bottom:4px; letter-spacing:0.5px;">REGION</strong>
+                                    <span id="modalCustRegion" style="color:var(--lime); font-size:0.95rem; font-weight:600;">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTION FOOTER -->
+                <div style="margin-top:25px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); display:flex; gap:15px;">
+                    <button class="btn-lime" style="flex:1; padding:12px; font-size:1rem; border-radius:var(--radius-pill);" onclick="updateOrderStatus('Walk in Sale')">Walk in Sale</button>
+                    <button style="flex:1; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:var(--radius-pill); font-weight:700; cursor:pointer; transition:var(--transition);" onmouseover="this.style.background='var(--dark2)'" onmouseout="this.style.background='var(--dark3)'" onclick="updateOrderStatus('Delivered')">Mark Delivered</button>
+                    <button style="flex:0.5; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:var(--radius-pill); font-weight:700; cursor:pointer;" onclick="updateOrderStatus('Canceled')">Cancel</button>
+                </div>
+                
+            </div>
+        </div>
+    </main>
+
+    <!-- PLUGIN CONFIGURE MODAL -->
+    <div id="pluginConfigModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:6000; align-items:center; justify-content:center; backdrop-filter:blur(8px);">
+        <div style="background:var(--dark2); border:1px solid var(--border); border-radius:var(--radius-xl); width:520px; max-width:95%; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 24px 80px rgba(0,0,0,0.8); position:relative; overflow:hidden;">
+            <!-- Top lime bar -->
+            <div id="pluginConfigBar" style="height:4px; background:var(--lime); width:100%;"></div>
+            <!-- Header -->
+            <div style="padding:24px 28px 0; display:flex; align-items:center; gap:16px;">
+                <div id="pluginConfigIcon" style="width:52px; height:52px; background:var(--lime-muted); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0;"></div>
+                <div style="flex:1;">
+                    <h2 id="pluginConfigName" style="font-family:var(--font-display); font-size:1.5rem; font-weight:800; margin-bottom:2px;"></h2>
+                    <p id="pluginConfigVersion" style="color:var(--grey); font-size:0.82rem;"></p>
+                </div>
+                <button onclick="closePluginConfig()" style="background:var(--dark3); border:none; width:36px; height:36px; border-radius:50%; color:var(--white); font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.2s;" onmouseover="this.style.background='var(--dark4)'" onmouseout="this.style.background='var(--dark3)'">&times;</button>
+            </div>
+            <!-- Scrollable body -->
+            <div style="flex:1; overflow-y:auto; padding:20px 28px 0;">
+                <p id="pluginConfigDesc" style="color:var(--grey2); font-size:0.9rem; line-height:1.6; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border);"></p>
+                <div id="pluginConfigFields" style="display:flex; flex-direction:column; gap:16px;"></div>
+            </div>
+            <!-- Footer -->
+            <div style="padding:24px 28px; display:flex; gap:12px; border-top:1px solid var(--border); margin-top:20px;">
+                <button class="btn-lime" style="flex:1; padding:13px; font-size:1rem;" onclick="savePluginConfig()">Save Settings</button>
+                <button onclick="closePluginConfig()" style="flex:0.5; background:transparent; color:var(--white); border:1px solid var(--border); border-radius:var(--radius-pill); font-weight:700; cursor:pointer; font-family:var(--font-body); transition:var(--transition);" onmouseover="this.style.borderColor='var(--white)'" onmouseout="this.style.borderColor='var(--border)'">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC (Routing, Chart, Mobile) -->
+    <!-- WALK-IN SALE MODAL -->
+    <div id="walkInModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:5000; align-items:center; justify-content:center; backdrop-filter:blur(8px);">
+        <div style="background:var(--dark2); padding:30px; border-radius:var(--radius-xl); width:500px; max-width:95%; border:1px solid var(--border); box-shadow:0 20px 80px rgba(0,0,0,0.8);">
+            <h2 style="font-family:var(--font-display); font-size:1.8rem; margin-bottom:20px; color:white;">Record Walk-In Sale</h2>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; color:var(--grey2); margin-bottom:8px; font-size:0.9rem;">Product</label>
+                <select id="wiProduct" onchange="calcWalkInTotal()" style="width:100%; padding:12px; background:var(--dark3); border:1px solid var(--border); border-radius:8px; color:white; font-family:var(--font-body); outline:none;">
+                    <option value="" disabled selected>Select a product...</option>
+                </select>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; color:var(--grey2); margin-bottom:8px; font-size:0.9rem;">Quantity</label>
+                <input type="number" id="wiQty" min="1" value="1" oninput="calcWalkInTotal()" style="width:100%; padding:12px; background:var(--dark3); border:1px solid var(--border); border-radius:8px; color:white; font-family:var(--font-body); outline:none;">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; color:var(--grey2); margin-bottom:8px; font-size:0.9rem;">Customer Name (Optional)</label>
+                <input type="text" id="wiCustomerName" placeholder="e.g. John Doe" style="width:100%; padding:12px; background:var(--dark3); border:1px solid var(--border); border-radius:8px; color:white; font-family:var(--font-body); outline:none;">
+            </div>
+            <div style="margin-bottom:25px;">
+                <label style="display:block; color:var(--grey2); margin-bottom:8px; font-size:0.9rem;">Customer Phone (Optional)</label>
+                <input type="text" id="wiCustomerPhone" placeholder="e.g. 0240000000" style="width:100%; padding:12px; background:var(--dark3); border:1px solid var(--border); border-radius:8px; color:white; font-family:var(--font-body); outline:none;">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding:15px; background:var(--dark3); border-radius:8px; border:1px solid var(--border);">
+                <span style="color:var(--grey2); font-weight:600;">Total Amount</span>
+                <span id="wiTotalDisplay" style="color:var(--lime); font-size:1.4rem; font-weight:800; font-family:var(--font-display);">GH₵ 0.00</span>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button onclick="submitWalkInSale()" class="btn-primary" style="flex:1; padding:14px; font-size:1rem; border-radius:999px;">Confirm Sale</button>
+                <button onclick="closeWalkInModal()" style="flex:1; background:transparent; color:white; border:1px solid var(--border); padding:14px; border-radius:999px; cursor:pointer; font-weight:600;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Walk-In Sale Logic
+        let walkInSelectedPrice = 0;
+        
+        function openWalkInModal() {
+            const select = document.getElementById('wiProduct');
+            select.innerHTML = '<option value="" disabled selected>Select a product...</option>';
+            adminProducts.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.dataset.price = p.price;
+                opt.textContent = `${p.name} - GH₵ ${p.price}`;
+                select.appendChild(opt);
+            });
+            document.getElementById('wiQty').value = 1;
+            document.getElementById('wiCustomerName').value = '';
+            document.getElementById('wiCustomerPhone').value = '';
+            calcWalkInTotal();
+            document.getElementById('walkInModal').style.display = 'flex';
+        }
+
+        function closeWalkInModal() {
+            document.getElementById('walkInModal').style.display = 'none';
+        }
+
+        function calcWalkInTotal() {
+            const select = document.getElementById('wiProduct');
+            const qty = parseInt(document.getElementById('wiQty').value) || 1;
+            const opt = select.options[select.selectedIndex];
+            walkInSelectedPrice = opt && opt.dataset.price ? parseFloat(opt.dataset.price) : 0;
+            const total = walkInSelectedPrice * qty;
+            document.getElementById('wiTotalDisplay').textContent = 'GH₵ ' + total.toFixed(2);
+        }
+
+        async function submitWalkInSale() {
+            const select = document.getElementById('wiProduct');
+            if(!select.value) return alert('Please select a product.');
+            
+            const prodId = select.value;
+            const prodName = select.options[select.selectedIndex].text.split(' - ')[0];
+            const qty = parseInt(document.getElementById('wiQty').value) || 1;
+            const total = walkInSelectedPrice * qty;
+            
+            const cName = document.getElementById('wiCustomerName').value.trim() || 'Walk-In Customer';
+            const cPhone = document.getElementById('wiCustomerPhone').value.trim() || '';
+            const regionName = window._adminRegion || (window._selectedAccount === 'ho' ? 'Ho' : 'Accra');
+            
+            const payload = {
+                region: regionName,
+                items: [{ id: prodId, name: prodName, price: walkInSelectedPrice, qty: qty }],
+                total: total,
+                customer: { fname: cName, lname: '', phone: cPhone, email: '', address: 'In-Store', city: regionName },
+                payment_method: "In-Store / Cash",
+                notes: "Walk-in sale recorded by admin"
+            };
+            
+            try {
+                // 1. Create order
+                const res = await fetch(API_BASE + "/orders", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if(!res.ok) {
+                    const errData = await res.json().catch(()=>({}));
+                    throw new Error(errData.error || "Failed to create order");
+                }
+                const data = await res.json();
+                
+                // 2. Mark as Delivered
+                await fetch(API_BASE + "/orders/" + data.id + "/status", {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'Delivered' })
+                });
+                
+                alert("Walk-In Sale recorded successfully!");
+                closeWalkInModal();
+                if (typeof loadAdminOrders === 'function') loadAdminOrders();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // 1. Sidebar Tab Switching Logic
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show targeted tab
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+
+            // Update sidebar active classes
+            document.querySelectorAll('.nav-menu a').forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('onclick') && a.getAttribute('onclick').includes("'" + tabId + "'")) {
+                    a.classList.add('active');
+                }
+            });
+
+            // On mobile, close sidebar automatically after clicking
+            if(window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        }
+
+        // 2. Mobile Hamburger Logic
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('open');
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('open');
+            }
+        }
+
+        // 3. Admin Products Logic (LocalStorage sync)
+        const defaultProducts = [
+            { id: 1, name: "Floral Maxi Dress", price: 280, emoji: "👗", cat: "WOMEN · DRESSES", badge: "NEW" },
+            { id: 2, name: "Strappy Heels", price: 220, emoji: "👠", cat: "WOMEN · SHOES", badge: "HOT" },
+            { id: 3, name: "Oxford Dress Shirt", price: 190, emoji: "👔", cat: "MEN · TOPS", badge: "NEW" },
+            { id: 4, name: "Leather Sneakers", price: 350, emoji: "👟", cat: "MEN · SHOES", badge: "HOT" },
+            { id: 5, name: "Knit Sweater", price: 150, emoji: "🧶", cat: "WOMEN · TOPS", badge: "" },
+            { id: 6, name: "Denim Jacket", price: 260, emoji: "🧥", cat: "MEN · OUTERWEAR", badge: "" },
+            { id: 7, name: "Kids T-Shirt", price: 80, emoji: "👕", cat: "CHILDREN · TOPS", badge: "" },
+            { id: 8, name: "School Backpack", price: 120, emoji: "🎒", cat: "CHILDREN · ACCESSORIES", badge: "NEW" }
+        ];
+
+        let adminProducts = JSON.parse(localStorage.getItem('lime_products'));
+        if (!adminProducts) {
+            adminProducts = defaultProducts;
+            localStorage.setItem('lime_products', JSON.stringify(adminProducts));
+        }
+
+        function renderAdminProducts() {
+            const tbody = document.getElementById('adminProductsTable');
+            if(!tbody) return;
+            tbody.innerHTML = adminProducts.map(p => {
+                const visual = p.images && p.images.length > 0
+                    ? `<img src="${p.images[0]}" style="width:45px; height:45px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">`
+                    : `<span style="font-size:2rem;">${p.emoji || '🛍️'}</span>`;
+                
+                return `
+                <tr>
+                    <td style="padding: 10px 0;">${visual}</td>
+                    <td style="font-weight:600;">${p.name}</td>
+                    <td style="color:var(--grey2);">${p.cat}</td>
+                    <td style="color:var(--lime); font-weight:700;">GH₵ ${p.price}</td>
+                    <td>${p.badge ? `<span class="diff-up">${p.badge}</span>` : '—'}</td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function deleteProduct(id) {
+            adminProducts = adminProducts.filter(p => p.id !== id);
+            localStorage.setItem('lime_products', JSON.stringify(adminProducts)); // Sync!
+            renderAdminProducts(); // Refresh table
+        }
+
+        let uploadedImages = [];
+
+        async function handleImageSelection(e) {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+
+            for (let file of files) {
+                const previewId = 'prev_' + Math.random().toString(36).substr(2, 9);
+                const previewDiv = document.createElement('div');
+                previewDiv.id = previewId;
+                previewDiv.style.cssText = 'position:relative; width:68px; height:68px; border-radius:10px; overflow:hidden; border:1px solid var(--border); background:#1e1e1e; cursor:pointer;';
+                previewDiv.title = "Click to remove";
+
+                const img = document.createElement('img');
+                img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+                previewDiv.appendChild(img);
+
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:absolute; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center;';
+                overlay.innerHTML = `
+                    <svg class="progress-ring" width="36" height="36" style="transform: rotate(-90deg);">
+                        <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="transparent" r="14" cx="18" cy="18" />
+                        <circle class="progress-ring__circle" stroke="#10B981" stroke-dasharray="87.96" stroke-dashoffset="87.96" stroke-width="3" fill="transparent" r="14" cx="18" cy="18" />
+                    </svg>
+                    <div class="checkmark-icon" style="display:none; position:absolute; bottom:4px; right:4px; width:18px; height:18px; background:#10B981; color:white; border-radius:50%; align-items:center; justify-content:center; font-size:10px; font-weight:bold; border:1.5px solid #1a1a1a;">✓</div>
+                `;
+                previewDiv.appendChild(overlay);
+                document.getElementById('imagePreviewContainer').appendChild(previewDiv);
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const base64 = event.target.result;
+                    img.src = base64;
+                    uploadedImages.push({ id: previewId, data: base64 });
+
+                    const circle = overlay.querySelector('.progress-ring__circle');
+                    const checkmark = overlay.querySelector('.checkmark-icon');
+                    const totalLength = 87.96;
+                    
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += 10;
+                        if (progress >= 100) {
+                            progress = 100;
+                            clearInterval(interval);
+                            circle.style.strokeDashoffset = 0;
+                            overlay.querySelector('.progress-ring').style.display = 'none';
+                            checkmark.style.display = 'flex';
+                            overlay.style.background = 'rgba(0,0,0,0.1)';
+                        } else {
+                            const offset = totalLength - (progress / 100) * totalLength;
+                            circle.style.strokeDashoffset = offset;
+                        }
+                    }, 40);
+                };
+                reader.readAsDataURL(file);
+
+                previewDiv.addEventListener('click', () => {
+                    previewDiv.remove();
+                    uploadedImages = uploadedImages.filter(img => img.id !== previewId);
+                });
+            }
+            e.target.value = '';
+        }
+
+        function openAddProductModal() {
+            document.getElementById('addProductModal').style.display = 'flex';
+            uploadedImages = [];
+            const container = document.getElementById('imagePreviewContainer');
+            if (container) container.innerHTML = '';
+        }
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').style.display = 'none';
+            uploadedImages = [];
+            const container = document.getElementById('imagePreviewContainer');
+            if (container) container.innerHTML = '';
+        }
+
+        async function saveNewProduct() {
+            const name = document.getElementById('pName').value;
+            const cat = document.getElementById('pCat').value;
+            const price = parseFloat(document.getElementById('pPrice').value) || 0;
+            const badge = document.getElementById('pBadge').value;
+
+            if(!name || !cat) return alert("Product name and category are required!");
+
+            const images = uploadedImages.map(img => img.data);
+
+            const newId = adminProducts.length ? Math.max(...adminProducts.map(p=>p.id)) + 1 : 1;
+            adminProducts.push({ id: newId, name, price, images, emoji: '🛍️', cat, badge });
+            localStorage.setItem('lime_products', JSON.stringify(adminProducts)); // Sync!
+            
+            closeAddProductModal();
+            renderAdminProducts(); // Refresh table
+            
+            document.getElementById('pName').value = '';
+            document.getElementById('pCat').value = '';
+            document.getElementById('pPrice').value = '';
+            document.getElementById('pBadge').value = '';
+            document.getElementById('pImage').value = '';
+        }
+
+        // --- ADMIN REGION LOGIC ---
+        let currentAdmin = sessionStorage.getItem('lime_admin_role') || null;
+        
+        const HO_REGIONS = ['Upper East', 'North East', 'Northern', 'Oti', 'Volta', 'Upper West'];
+
+        async function fetchAssignedInventory() {
+            const listEl = document.getElementById('assignedInventoryList');
+            if (!listEl) return;
+            if (!currentAdmin) {
+                listEl.innerHTML = '<span class="grey">Please login first</span>';
+                return;
+            }
+            try {
+                const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.origin === "null" || window.location.protocol === "file:") ? "http://localhost:5000/api" : window.location.origin + "/api";
+                const res = await fetch(API + "/products");
+                if (!res.ok) throw new Error("Failed to fetch");
+                const products = await res.json();
+                
+                const stockCol = currentAdmin.toLowerCase() === 'ho' ? 'stock_ho' : 'stock_accra';
+                const assigned = products.filter(p => p[stockCol] && p[stockCol] > 0);
+                
+                if (assigned.length === 0) {
+                    listEl.innerHTML = '<span class="grey">No items assigned</span>';
+                    return;
+                }
+                
+                listEl.innerHTML = assigned.map(p => `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">
+                        <span style="color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:75%;" title="${p.name.replace(/"/g, '&quot;')}">${p.name}</span>
+                        <span style="color:var(--lime); font-weight:600;">${p[stockCol]}</span>
+                    </div>
+                `).join('');
+            } catch (err) {
+                // Fallback to local storage if API fails
+                console.warn("Failed to fetch from API, falling back to local storage", err);
+                const localProducts = JSON.parse(localStorage.getItem('lime_products') || '[]');
+                const stockCol = currentAdmin.toLowerCase() === 'ho' ? 'stock_ho' : 'stock_accra';
+                const assigned = localProducts.filter(p => p[stockCol] && p[stockCol] > 0);
+                if (assigned.length === 0) {
+                    listEl.innerHTML = '<span class="grey">No items assigned</span>';
+                    return;
+                }
+                listEl.innerHTML = assigned.map(p => `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">
+                        <span style="color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:75%;" title="${p.name.replace(/"/g, '&quot;')}">${p.name}</span>
+                        <span style="color:var(--lime); font-weight:600;">${p[stockCol]}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function loginAdmin(role) {
+            currentAdmin = role;
+            sessionStorage.setItem('lime_admin_role', role);
+            document.getElementById('adminLoginOverlay').style.display = 'none';
+            document.getElementById('adminName').innerText = role + ' Admin';
+            document.getElementById('adminAvatar').innerText = role === 'Accra' ? 'AC' : 'HO';
+            renderOrders();
+            fetchAssignedInventory();
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem('lime_admin_role');
+            window.location.reload();
+        }
+
+        // On Load, check if admin is logged in
+        if (currentAdmin) {
+            document.getElementById('adminLoginOverlay').style.display = 'none';
+            document.getElementById('adminName').innerText = currentAdmin + ' Admin';
+            document.getElementById('adminAvatar').innerText = currentAdmin === 'Accra' ? 'AC' : 'HO';
+            fetchAssignedInventory();
+        } else {
+            const overlay = document.getElementById('adminLoginOverlay');
+            if(overlay) overlay.style.display = 'flex';
+        }
+
+        function getFilteredOrders() {
+            let allOrders = JSON.parse(localStorage.getItem('lime_live_orders') || '[]');
+            if (!currentAdmin) return [];
+            
+            return allOrders.filter(order => {
+                const isHoRegion = HO_REGIONS.includes(order.region);
+                if (currentAdmin === 'Ho') return isHoRegion;
+                else return !isHoRegion; // Accra handles everything else
+            });
+        }
+
+        function renderOrders() {
+            const myOrders = getFilteredOrders();
+            
+            // 1. Update stats
+            const orderCountNode = document.getElementById('dashOrderCount');
+            if (orderCountNode) orderCountNode.innerText = myOrders.length;
+            
+            let revenue = 0;
+            myOrders.forEach(o => revenue += o.total);
+            const divRev = document.getElementById('dashRev');
+            if (divRev) divRev.innerText = 'GH₵ ' + revenue.toFixed(2);
+            
+            // 2. Render Recent Orders (first 4) into Dashboard
+            const dashTable = document.getElementById('dashRecentOrders');
+            if (dashTable) {
+                if (myOrders.length === 0) {
+                    dashTable.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--grey);padding:30px;">No recent orders.</td></tr>';
+                } else {
+                    dashTable.innerHTML = myOrders.slice(0,4).map(o => `
+                        <tr>
+                            <td style="font-weight: 500;">${o.id}</td>
+                            <td><span class="status-pill status-${o.status.toLowerCase()}">${o.status}</span></td>
+                            <td style="font-weight: 600;">GH₵ ${o.total.toFixed(2)}</td>
+                        </tr>
+                    `).join('');
+                }
+            }
+            
+            // 3. Render Orders Tab
+            const mainTable = document.getElementById('adminOrdersTable');
+            if (mainTable) {
+                if (myOrders.length === 0) {
+                    mainTable.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--grey);">No orders assigned to your region belt yet.</td></tr>';
+                } else {
+                    mainTable.innerHTML = myOrders.map(o => {
+                        const d = new Date(o.date);
+                        return `
+                        <tr>
+                            <td style="font-weight: 500;">${o.id}</td>
+                            <td>${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                            <td style="color:var(--grey2);">${o.region}</td>
+                            <td style="color:var(--lime); font-weight:700;">GH₵ ${o.total.toFixed(2)}</td>
+                            <td><span class="status-pill status-${o.status.toLowerCase().replace(' ', '-')}">${o.status}</span></td>
+                            <td>
+                                <button style="background:var(--dark3); color:white; border:1px solid var(--border); padding:6px 12px; border-radius:6px; cursor:pointer;" onclick="openOrderModal('${o.id}')">View</button>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('');
+                }
+            }
+        }
+
+        // Listen for new orders across tabs!
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'lime_live_orders') {
+                renderOrders();
+            }
+        });
+
+        // --- ORDER MODAL LOGIC ---
+        let currentViewOrderId = null;
+
+        function openOrderModal(orderId) {
+            currentViewOrderId = orderId;
+            let allOrders = JSON.parse(localStorage.getItem('lime_live_orders') || '[]');
+            let order = allOrders.find(o => o.id === orderId);
+            if(!order) return alert("Order not found!");
+
+            document.getElementById('modalOrderId').innerText = order.id;
+            
+            const d = new Date(order.date);
+            document.getElementById('modalOrderDate').innerText = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            const stNode = document.getElementById('modalOrderStatus');
+            stNode.innerText = order.status.toUpperCase();
+            stNode.className = 'status-pill status-' + order.status.toLowerCase().replace(' ', '-');
+
+            // Render Items
+            const itemsNode = document.getElementById('modalOrderItems');
+            itemsNode.innerHTML = order.items.map(item => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <div style="flex:1;">
+                        <span style="font-weight:600; font-size:0.95rem;">${item.name}</span><br>
+                        <span style="font-size:0.8rem; color:var(--grey);">Qty: ${item.qty}</span>
+                    </div>
+                    <div style="font-weight:600; padding-left:15px;">
+                        GH₵ ${(item.price * item.qty).toFixed(2)}
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('modalOrderTotal').innerText = 'GH₵ ' + order.total.toFixed(2);
+
+            // Customer rendering
+            if (order.customer) {
+                document.getElementById('modalCustName').innerText = order.customer.fname + ' ' + order.customer.lname;
+                document.getElementById('modalCustPhone').innerText = order.customer.phone || 'N/A';
+                document.getElementById('modalCustAddress').innerText = (order.customer.address || '') + ', ' + (order.customer.city || '');
+            } else {
+                document.getElementById('modalCustName').innerText = '[Legacy Order] No Name';
+                document.getElementById('modalCustPhone').innerText = 'N/A';
+                document.getElementById('modalCustAddress').innerText = 'N/A';
+            }
+            document.getElementById('modalCustRegion').innerText = order.region;
+
+            document.getElementById('viewOrderModal').style.display = 'flex';
+        }
+
+        function closeOrderModal() {
+            document.getElementById('viewOrderModal').style.display = 'none';
+        }
+
+        function updateOrderStatus(newStatus) {
+            if(!currentViewOrderId) return;
+            
+            let allOrders = JSON.parse(localStorage.getItem('lime_live_orders') || '[]');
+            let index = allOrders.findIndex(o => o.id === currentViewOrderId);
+            
+            if(index !== -1) {
+                allOrders[index].status = newStatus;
+                localStorage.setItem('lime_live_orders', JSON.stringify(allOrders));
+                
+                renderOrders(); // Refresh table
+                
+                // Update Modal Status indicator so you see it immediately!
+                const stNode = document.getElementById('modalOrderStatus');
+                stNode.innerText = newStatus.toUpperCase();
+                stNode.className = 'status-pill status-' + newStatus.toLowerCase().replace(' ', '-');
+                
+                // Broadcast for other tabs
+                window.dispatchEvent(new Event('storage'));
+            }
+        }
+
+        // Initialize display
+        renderOrders();
+
+        // =============================================
+        //  PLUGINS DATA & LOGIC
+        // =============================================
+        const defaultPlugins = [
+            { id:'p1', name:'MTN MoMo Pay', desc:'Accept MTN Mobile Money payments directly on your storefront with instant confirmation.', icon:'💳', cat:'payment', status:'active', version:'2.4.1',
+              configFields:[
+                {label:'Merchant Name', key:'merchant_name', type:'text', placeholder:'e.g. Lime Fashion Ghana', value:'Lime Fashion Ghana'},
+                {label:'MTN MoMo Number', key:'momo_number', type:'tel', placeholder:'e.g. 024 000 0000', value:'024 000 0000'},
+                {label:'API Key', key:'api_key', type:'password', placeholder:'Enter your MoMo API key', value:''},
+                {label:'Environment', key:'env', type:'select', options:['Sandbox (Testing)','Production (Live)'], value:'Production (Live)'}
+              ]},
+            { id:'p2', name:'Telecel Cash', desc:'Integrate Telecel Cash payments for seamless mobile checkout across Ghana.', icon:'📱', cat:'payment', status:'inactive', version:'1.8.0',
+              configFields:[
+                {label:'Merchant Account Name', key:'merchant_name', type:'text', placeholder:'e.g. Lime Fashion', value:''},
+                {label:'Telecel Number', key:'telecel_number', type:'tel', placeholder:'e.g. 027 000 0000', value:''},
+                {label:'API Secret', key:'api_secret', type:'password', placeholder:'Enter your Telecel API secret', value:''},
+                {label:'Auto-confirm Payments', key:'auto_confirm', type:'select', options:['Yes — Auto-confirm','No — Manual review'], value:'Yes — Auto-confirm'}
+              ]},
+            { id:'p3', name:'WhatsApp Notify', desc:'Send automatic order confirmations and shipping updates via WhatsApp Business API.', icon:'💬', cat:'marketing', status:'active', version:'3.1.0',
+              configFields:[
+                {label:'WhatsApp Business Number', key:'wa_number', type:'tel', placeholder:'e.g. +233 24 000 0000', value:'+233 24 000 0000'},
+                {label:'Meta App ID', key:'app_id', type:'text', placeholder:'Enter your Meta App ID', value:''},
+                {label:'Access Token', key:'access_token', type:'password', placeholder:'Enter your permanent access token', value:''},
+                {label:'Notify on Order Placed', key:'notify_placed', type:'select', options:['Yes','No'], value:'Yes'},
+                {label:'Notify on Walk in Sale', key:'notify_shipped', type:'select', options:['Yes','No'], value:'Yes'}
+              ]},
+            { id:'p4', name:'Instagram Shop Sync', desc:'Sync your product catalog with Instagram Shopping for social commerce.', icon:'📸', cat:'social', status:'inactive', version:'1.2.4',
+              configFields:[
+                {label:'Instagram Business Handle', key:'ig_handle', type:'text', placeholder:'e.g. @limefashion.gh', value:''},
+                {label:'Meta Catalog ID', key:'catalog_id', type:'text', placeholder:'Enter your product catalog ID', value:''},
+                {label:'Sync Frequency', key:'sync_freq', type:'select', options:['Every hour','Every 6 hours','Every 24 hours'], value:'Every 6 hours'}
+              ]},
+            { id:'p5', name:'Ghana Post Tracker', desc:'Real-time delivery tracking integration with Ghana Post nationwide network.', icon:'📦', cat:'shipping', status:'active', version:'2.0.3',
+              configFields:[
+                {label:'Ghana Post API Key', key:'gp_api_key', type:'password', placeholder:'Enter your Ghana Post API key', value:''},
+                {label:'Sender Name', key:'sender_name', type:'text', placeholder:'e.g. Lime Fashion', value:'Lime Fashion'},
+                {label:'Default Service Type', key:'service_type', type:'select', options:['Standard Delivery','Express Delivery','Economy'], value:'Standard Delivery'},
+                {label:'Auto-generate Tracking', key:'auto_track', type:'select', options:['Yes','No'], value:'Yes'}
+              ]},
+            { id:'p6', name:'Google Analytics 4', desc:'Advanced e-commerce analytics with conversion tracking and audience insights.', icon:'📊', cat:'analytics', status:'active', version:'4.2.0',
+              configFields:[
+                {label:'Measurement ID', key:'ga_id', type:'text', placeholder:'e.g. G-XXXXXXXXXX', value:'G-XXXXXXXXXX'},
+                {label:'Enable E-commerce Tracking', key:'ecommerce', type:'select', options:['Yes — Enhanced','Yes — Standard','No'], value:'Yes — Enhanced'},
+                {label:'Anonymize IP', key:'anon_ip', type:'select', options:['Yes (GDPR)','No'], value:'Yes (GDPR)'}
+              ]},
+            { id:'p7', name:'SMS Campaigns', desc:'Bulk SMS marketing campaigns with scheduled sends and delivery reports.', icon:'📣', cat:'marketing', status:'inactive', version:'1.5.2',
+              configFields:[
+                {label:'SMS Provider API Key', key:'sms_api', type:'password', placeholder:'Enter your SMS provider key', value:''},
+                {label:'Sender ID', key:'sender_id', type:'text', placeholder:'e.g. LIMEFASH', value:''},
+                {label:'Default Campaign Name', key:'campaign_name', type:'text', placeholder:'e.g. Lime Fashion Promo', value:''},
+                {label:'Opt-out Keyword', key:'optout_keyword', type:'text', placeholder:'e.g. STOP', value:'STOP'}
+              ]},
+            { id:'p8', name:'Paystack Gateway', desc:'Full-featured payment gateway supporting cards, bank transfers, and USSD payments.', icon:'🏦', cat:'payment', status:'inactive', version:'3.0.1',
+              configFields:[
+                {label:'Public Key', key:'ps_public', type:'text', placeholder:'pk_live_...', value:''},
+                {label:'Secret Key', key:'ps_secret', type:'password', placeholder:'sk_live_...', value:''},
+                {label:'Currency', key:'currency', type:'select', options:['GHS — Ghana Cedi','USD — US Dollar','NGN — Naira'], value:'GHS — Ghana Cedi'},
+                {label:'Environment', key:'ps_env', type:'select', options:['Live','Test'], value:'Live'}
+              ]},
+            { id:'p9', name:'TikTok Pixel', desc:'Track conversions and retarget customers from TikTok ad campaigns.', icon:'🎵', cat:'social', status:'inactive', version:'1.0.8',
+              configFields:[
+                {label:'Pixel ID', key:'tt_pixel_id', type:'text', placeholder:'e.g. C8A1B2C3D4E5F6G7', value:''},
+                {label:'Access Token', key:'tt_token', type:'password', placeholder:'Enter your TikTok access token', value:''},
+                {label:'Track Add to Cart', key:'track_cart', type:'select', options:['Yes','No'], value:'Yes'},
+                {label:'Track Purchases', key:'track_purchase', type:'select', options:['Yes','No'], value:'Yes'}
+              ]},
+            { id:'p10', name:'Bolt Delivery', desc:'On-demand same-day courier service integration for local deliveries.', icon:'🚀', cat:'shipping', status:'inactive', version:'2.1.0',
+              configFields:[
+                {label:'Bolt Business API Key', key:'bolt_api', type:'password', placeholder:'Enter your Bolt for Business key', value:''},
+                {label:'Pickup Address', key:'pickup_address', type:'text', placeholder:'e.g. 12 Independence Ave, Accra', value:''},
+                {label:'Max Delivery Radius (km)', key:'radius', type:'text', placeholder:'e.g. 20', value:'20'},
+                {label:'Delivery Fee Policy', key:'fee_policy', type:'select', options:['Store covers fee','Customer pays fee','Split 50/50'], value:'Customer pays fee'}
+              ]},
+            { id:'p11', name:'Hotjar Heatmaps', desc:'Visualize user behavior with heatmaps, session recordings, and surveys.', icon:'🔥', cat:'analytics', status:'inactive', version:'1.4.5',
+              configFields:[
+                {label:'Hotjar Site ID', key:'hj_id', type:'text', placeholder:'e.g. 1234567', value:''},
+                {label:'Record Sessions', key:'record', type:'select', options:['Yes — All visitors','Yes — 50% sample','No'], value:'Yes — 50% sample'},
+                {label:'Enable Heatmaps', key:'heatmaps', type:'select', options:['Yes','No'], value:'Yes'}
+              ]},
+            { id:'p12', name:'Facebook Pixel', desc:'Track customer journeys and optimize Facebook & Instagram ad performance.', icon:'🌐', cat:'social', status:'active', version:'2.7.3',
+              configFields:[
+                {label:'Pixel ID', key:'fb_pixel_id', type:'text', placeholder:'e.g. 123456789012345', value:'123456789012345'},
+                {label:'Access Token (Conversions API)', key:'fb_token', type:'password', placeholder:'Enter your CAPI access token', value:''},
+                {label:'Track ViewContent', key:'track_view', type:'select', options:['Yes','No'], value:'Yes'},
+                {label:'Track Add to Cart', key:'track_cart', type:'select', options:['Yes','No'], value:'Yes'},
+                {label:'Track Purchases', key:'track_purchase', type:'select', options:['Yes','No'], value:'Yes'}
+              ]},
+            { id:'p13', name:'ExpressPay Gateway', desc:'Integrate ExpressPay Ghana to accept visa/mastercard and all mobile money networks in one checkout.', icon:'💳', cat:'payment', status:'inactive', version:'1.0.0',
+              configFields:[
+                {label:'Merchant ID', key:'exp_merchant_id', type:'text', placeholder:'Enter your ExpressPay Merchant ID', value:''},
+                {label:'API Key', key:'exp_api_key', type:'password', placeholder:'Enter your ExpressPay API key', value:''},
+                {label:'Environment', key:'exp_env', type:'select', options:['Sandbox (Testing)','Production (Live)'], value:'Production (Live)'}
+              ]},
+            { id:'p14', name:'Hubtel Pay', desc:'Accept payments via Hubtel API. Supports MTN MoMo, Telecel Cash, AT Money, and cards.', icon:'🔌', cat:'payment', status:'inactive', version:'2.0.1',
+              configFields:[
+                {label:'Merchant Account Number', key:'hubtel_acc', type:'text', placeholder:'e.g. HM123456', value:''},
+                {label:'Client ID', key:'hubtel_client_id', type:'text', placeholder:'Enter Hubtel Client ID', value:''},
+                {label:'Client Secret', key:'hubtel_client_secret', type:'password', placeholder:'Enter Hubtel Client Secret', value:''},
+                {label:'Environment', key:'hubtel_env', type:'select', options:['Sandbox (Testing)','Production (Live)'], value:'Production (Live)'}
+              ]},
+            { id:'p15', name:'Slydepay Integration', desc:'Accept payments on your storefront via Slydepay by Stanbic Bank Ghana.', icon:'📈', cat:'payment', status:'inactive', version:'1.3.0',
+              configFields:[
+                {label:'Merchant Email', key:'slydepay_email', type:'text', placeholder:'e.g. finance@brand.com', value:''},
+                {label:'API Secret Key', key:'slydepay_secret', type:'password', placeholder:'Enter Slydepay API secret key', value:''},
+                {label:'Order Description prefix', key:'slydepay_desc', type:'text', placeholder:'e.g. Lime Fashion Order', value:'Lime Fashion Order'}
+              ]}
+        ];
+
+        let pluginsData = JSON.parse(localStorage.getItem('lime_plugins'));
+        if (!pluginsData) {
+            pluginsData = defaultPlugins;
+            localStorage.setItem('lime_plugins', JSON.stringify(pluginsData));
+        } else {
+            // Merge any missing default plugins
+            defaultPlugins.forEach(dp => {
+                const exists = pluginsData.find(p => p.id === dp.id);
+                if (!exists) {
+                    pluginsData.push(dp);
+                }
+            });
+            localStorage.setItem('lime_plugins', JSON.stringify(pluginsData));
+        }
+
+        function renderPlugins(filter = 'all', search = '') {
+            const grid = document.getElementById('pluginsGrid');
+            if(!grid) return;
+            let list = pluginsData;
+            if(filter !== 'all') list = list.filter(p => p.cat === filter);
+            if(search) list = list.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+
+            grid.innerHTML = list.map(p => {
+                const isActive = p.status === 'active';
+                return `
+                <div class="panel plugin-card" data-cat="${p.cat}" style="padding:24px; transition:var(--transition); cursor:default; border-color:${isActive ? 'var(--lime-border)' : 'var(--border)'}; position:relative; overflow:hidden;">
+                    ${isActive ? '<div style="position:absolute; top:0; left:0; right:0; height:3px; background:var(--lime);"></div>' : ''}
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                        <div style="display:flex; align-items:center; gap:14px;">
+                            <div style="width:48px; height:48px; background:${isActive ? 'var(--lime-muted)' : 'var(--dark3)'}; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">${p.icon}</div>
+                            <div>
+                                <h4 style="font-size:1.05rem; font-weight:700; margin-bottom:2px;">${p.name}</h4>
+                                <span style="font-size:0.75rem; color:var(--grey);">v${p.version}</span>
+                            </div>
+                        </div>
+                        <label style="position:relative; width:44px; height:24px; cursor:pointer;">
+                            <input type="checkbox" ${isActive ? 'checked' : ''} onchange="togglePlugin('${p.id}')" style="opacity:0; width:0; height:0;">
+                            <span style="position:absolute; inset:0; background:${isActive ? 'var(--lime)' : 'var(--dark4)'}; border-radius:12px; transition:0.3s;"></span>
+                            <span style="position:absolute; top:3px; ${isActive ? 'left:23px' : 'left:3px'}; width:18px; height:18px; background:${isActive ? 'var(--black)' : 'var(--grey)'}; border-radius:50%; transition:0.3s;"></span>
+                        </label>
+                    </div>
+                    <p style="color:var(--grey2); font-size:0.88rem; line-height:1.5; margin-bottom:18px;">${p.desc}</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; color:${isActive ? 'var(--lime)' : 'var(--grey)'}; font-weight:600;">${isActive ? '● Active' : '○ Inactive'}</span>
+                        <button onclick="openPluginConfig('${p.id}')" style="background:var(--dark3); color:var(--white); border:1px solid var(--border); padding:6px 14px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; font-family:var(--font-body); transition:var(--transition);" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--border)'">⚙ Configure</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        let currentPluginFilter = 'all';
+        function filterPluginCat(cat, btn) {
+            currentPluginFilter = cat;
+            document.querySelectorAll('.plugin-filter').forEach(b => {
+                b.style.background = 'var(--dark2)'; b.style.color = 'var(--grey2)'; b.style.border = '1px solid var(--border)';
+            });
+            btn.style.background = 'var(--lime)'; btn.style.color = 'var(--black)'; btn.style.border = 'none';
+            renderPlugins(cat);
+        }
+        function filterPlugins(val) { renderPlugins(currentPluginFilter, val); }
+
+        function togglePlugin(id) {
+            const p = pluginsData.find(x => x.id === id);
+            if(p) { 
+                p.status = p.status === 'active' ? 'inactive' : 'active'; 
+                localStorage.setItem('lime_plugins', JSON.stringify(pluginsData));
+            }
+            renderPlugins(currentPluginFilter);
+        }
+
+        // --- Plugin Configure Modal ---
+        let currentConfigPluginId = null;
+
+        function openPluginConfig(id) {
+            const p = pluginsData.find(x => x.id === id);
+            if(!p) return;
+            currentConfigPluginId = id;
+
+            document.getElementById('pluginConfigIcon').innerText = p.icon;
+            document.getElementById('pluginConfigName').innerText = p.name;
+            document.getElementById('pluginConfigVersion').innerText = 'Version ' + p.version + ' · ' + p.cat.charAt(0).toUpperCase() + p.cat.slice(1);
+            document.getElementById('pluginConfigDesc').innerText = p.desc;
+
+            // Render fields
+            const fieldsEl = document.getElementById('pluginConfigFields');
+            fieldsEl.innerHTML = p.configFields.map(f => {
+                const inputStyle = 'width:100%; padding:11px 14px; background:var(--dark3); color:var(--white); border:1px solid var(--border); border-radius:10px; font-family:var(--font-body); font-size:0.95rem; outline:none; transition:border-color 0.2s;';
+                let inputHtml = '';
+                if(f.type === 'select') {
+                    inputHtml = `<select id="pcf_${f.key}" style="${inputStyle} cursor:pointer;" onfocus="this.style.borderColor='var(--lime)'" onblur="this.style.borderColor='var(--border)'">${f.options.map(o => `<option${o === f.value ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
+                } else {
+                    inputHtml = `<input id="pcf_${f.key}" type="${f.type}" value="${f.value}" placeholder="${f.placeholder}" style="${inputStyle}" onfocus="this.style.borderColor='var(--lime)'" onblur="this.style.borderColor='var(--border)'">`;
+                }
+                return `<div><label style="display:block; font-size:0.8rem; color:var(--grey2); margin-bottom:7px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">${f.label}</label>${inputHtml}</div>`;
+            }).join('');
+
+            document.getElementById('pluginConfigModal').style.display = 'flex';
+        }
+
+        function closePluginConfig() {
+            document.getElementById('pluginConfigModal').style.display = 'none';
+            currentConfigPluginId = null;
+        }
+
+        function savePluginConfig() {
+            const p = pluginsData.find(x => x.id === currentConfigPluginId);
+            if(!p) return;
+            p.configFields.forEach(f => {
+                const el = document.getElementById('pcf_' + f.key);
+                if(el) f.value = el.value;
+            });
+            localStorage.setItem('lime_plugins', JSON.stringify(pluginsData));
+            closePluginConfig();
+            // Show a brief success toast
+            const toast = document.createElement('div');
+            toast.innerText = '✓ ' + p.name + ' settings saved!';
+            toast.style.cssText = 'position:fixed; bottom:30px; right:30px; background:var(--dark2); color:var(--lime); border:1px solid var(--lime-border); border-radius:12px; padding:14px 22px; font-weight:600; z-index:9999; box-shadow:0 8px 30px rgba(0,0,0,0.5); animation:fadeIn 0.3s ease;';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('pluginConfigModal').addEventListener('click', function(e) {
+            if(e.target === this) closePluginConfig();
+        });
+
+        // =============================================
+        //  TEMPLATES DATA & LOGIC
+        // =============================================
+        const templatesData = [
+            { id:'t1', name:'Midnight Luxe', desc:'Dark premium theme with lime accents. Ideal for high-end fashion brands.', cat:'fashion', preview:'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)', accent:'#C5F135', active:true },
+            { id:'t2', name:'Clean Slate', desc:'Ultra-minimal white theme with sharp typography and generous white space.', cat:'minimal', preview:'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%)', accent:'#212529', active:false },
+            { id:'t3', name:'Neon Runway', desc:'Bold neon gradients with energetic animations. Perfect for streetwear.', cat:'bold', preview:'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)', accent:'#ff006e', active:false },
+            { id:'t4', name:'Sahara Gold', desc:'Warm earth tones with golden accents. Elegant and timeless aesthetic.', cat:'fashion', preview:'linear-gradient(135deg, #1a1a0a 0%, #2d2b1f 50%, #3d3b2f 100%)', accent:'#d4a574', active:false },
+            { id:'t5', name:'Arctic Frost', desc:'Cool blue-white minimalism with frosted glass effects and subtle animations.', cat:'minimal', preview:'linear-gradient(135deg, #e8f4f8 0%, #d1ecf1 50%, #bee5eb 100%)', accent:'#0077b6', active:false },
+            { id:'t6', name:'Blaze', desc:'Fiery red-orange theme with aggressive typography. For bold brands that demand attention.', cat:'bold', preview:'linear-gradient(135deg, #1a0000 0%, #3d0000 50%, #5c1010 100%)', accent:'#ff4500', active:false },
+            { id:'t7', name:'Ivory Couture', desc:'Soft cream palette with serif elegance. Designed for luxury boutique aesthetics.', cat:'fashion', preview:'linear-gradient(135deg, #faf8f0 0%, #f5f0e1 50%, #ebe5d5 100%)', accent:'#8b7355', active:false },
+            { id:'t8', name:'Cyber Pulse', desc:'Futuristic cyberpunk-inspired design with glitch effects and vivid purples.', cat:'bold', preview:'linear-gradient(135deg, #0d001a 0%, #1a0033 50%, #2d004d 100%)', accent:'#bf00ff', active:false }
+        ];
+
+        function renderTemplates(filter = 'all') {
+            const grid = document.getElementById('templatesGrid');
+            if(!grid) return;
+            let list = templatesData;
+            if(filter !== 'all') list = list.filter(t => t.cat === filter);
+
+            grid.innerHTML = list.map(t => `
+                <div class="panel" style="padding:0; overflow:hidden; transition:var(--transition); border-color:${t.active ? 'var(--lime-border)' : 'var(--border)'}; position:relative;">
+                    ${t.active ? '<div style="position:absolute; top:14px; right:14px; z-index:2;"><span class="status-pill status-delivered" style="font-size:0.7rem; padding:4px 10px;">ACTIVE</span></div>' : ''}
+                    <!-- Preview Area (clickable) -->
+                    <div style="height:180px; background:${t.preview}; position:relative; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="previewTemplate('${t.id}')" title="Click to preview">
+                        <div style="text-align:center;">
+                            <div style="font-family:var(--font-display); font-size:1.6rem; font-weight:900; color:${t.accent}; letter-spacing:1px; text-shadow:0 2px 20px rgba(0,0,0,0.5);">Lime.</div>
+                            <div style="font-size:0.7rem; color:rgba(255,255,255,0.5); margin-top:4px; letter-spacing:3px; text-transform:uppercase;">Fashion</div>
+                        </div>
+                        <div style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.35)'" onmouseout="this.style.background='rgba(0,0,0,0)'">
+                            <span style="color:white; font-weight:700; font-size:0.85rem; opacity:0; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">👁 Preview</span>
+                        </div>
+                    </div>
+                    <!-- Info Area -->
+                    <div style="padding:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h4 style="font-size:1.1rem; font-weight:700;">${t.name}</h4>
+                            <div style="width:18px; height:18px; border-radius:50%; background:${t.accent}; border:2px solid var(--border);"></div>
+                        </div>
+                        <p style="color:var(--grey2); font-size:0.85rem; line-height:1.5; margin-bottom:18px;">${t.desc}</p>
+                        <div style="display:flex; gap:10px;">
+                            ${t.active 
+                                ? '<button style="flex:1; background:var(--dark3); color:var(--grey2); border:1px solid var(--border); padding:10px; border-radius:var(--radius-pill); font-weight:600; cursor:default; font-family:var(--font-body);">Currently Active</button><button style="flex:0.5; background:var(--dark3); color:white; border:1px solid var(--lime-border); border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);" onclick="previewTemplate(\'' + t.id + '\')" onmouseover="this.style.borderColor=\'var(--lime)\'" onmouseout="this.style.borderColor=\'var(--lime-border)\'">Preview</button>'
+                                : '<button class="btn-lime" style="flex:1; padding:10px; font-size:0.9rem;" onclick="activateTemplate(\'' + t.id + '\')">Activate</button><button style="flex:0.5; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);" onclick="previewTemplate(\'' + t.id + '\')" onmouseover="this.style.borderColor=\'var(--lime)\'" onmouseout="this.style.borderColor=\'var(--border)\'">Preview</button>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterTemplateCat(cat, btn) {
+            document.querySelectorAll('.template-filter').forEach(b => {
+                b.style.background = 'var(--dark2)'; b.style.color = 'var(--grey2)'; b.style.border = '1px solid var(--border)';
+            });
+            btn.style.background = 'var(--lime)'; btn.style.color = 'var(--black)'; btn.style.border = 'none';
+            renderTemplates(cat);
+        }
+
+        function activateTemplate(id) {
+            templatesData.forEach(t => t.active = (t.id === id));
+            renderTemplates();
+
+            // Update the active banner at the top of the Templates tab
+            const active = templatesData.find(t => t.active);
+            if(active) {
+                const banner = document.querySelector('#tab-templates .panel:first-of-type h3');
+                if(banner) banner.innerText = active.name;
+                const bannerSub = document.querySelector('#tab-templates .panel:first-of-type p');
+                if(bannerSub) bannerSub.innerText = 'Currently active · ' + active.desc.split('.')[0];
+            }
+
+            // ✅ Persist selection so mainpage.html can apply it
+            localStorage.setItem('lime_active_template', JSON.stringify({
+                id: active.id,
+                name: active.name,
+                accent: active.accent,
+                preview: active.preview
+            }));
+
+            // Show toast
+            const toast = document.createElement('div');
+            toast.innerHTML = '✓ <strong>' + active.name + '</strong> is now the active template!';
+            toast.style.cssText = 'position:fixed; bottom:30px; right:30px; background:var(--dark2); color:var(--lime); border:1px solid var(--lime-border); border-radius:12px; padding:14px 22px; font-weight:600; z-index:9999; box-shadow:0 8px 30px rgba(0,0,0,0.5); animation:fadeIn 0.3s ease;';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Preview modal
+        function previewTemplate(id) {
+            const t = templatesData.find(x => x.id === id);
+            if(!t) return;
+
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'templatePreviewOverlay';
+            overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(8px); animation:fadeIn 0.3s ease;';
+            overlay.innerHTML = `
+                <div style="width:900px; max-width:95%; max-height:90vh; overflow:hidden; border-radius:16px; border:1px solid rgba(255,255,255,0.1); box-shadow:0 30px 100px rgba(0,0,0,0.8); display:flex; flex-direction:column;">
+                    <!-- Preview header bar -->
+                    <div style="background:#1a1a1a; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.07);">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="display:flex; gap:6px;">
+                                <div style="width:12px; height:12px; background:#ff5f57; border-radius:50%;"></div>
+                                <div style="width:12px; height:12px; background:#ffbd2e; border-radius:50%;"></div>
+                                <div style="width:12px; height:12px; background:#28c840; border-radius:50%;"></div>
+                            </div>
+                            <span style="color:#888; font-size:0.8rem;">Preview — ${t.name}</span>
+                        </div>
+                        <button onclick="document.getElementById('templatePreviewOverlay').remove()" style="background:transparent; border:none; color:#888; font-size:1.6rem; cursor:pointer; line-height:1;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#888'">&times;</button>
+                    </div>
+                    <!-- Simulated store page -->
+                    <div style="flex:1; overflow-y:auto; background:${t.preview};">
+                        <!-- Simulated Navbar -->
+                        <div style="padding:18px 5%; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.3); backdrop-filter:blur(10px);">
+                            <div style="font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:${t.accent};">Lime<span style="color:${t.accent};">.</span>Fashion</div>
+                            <div style="display:flex; gap:20px;">
+                                <span style="color:rgba(255,255,255,0.6); font-size:0.9rem;">Home</span>
+                                <span style="color:rgba(255,255,255,0.6); font-size:0.9rem;">Shop</span>
+                                <span style="color:rgba(255,255,255,0.6); font-size:0.9rem;">Women</span>
+                                <span style="color:rgba(255,255,255,0.6); font-size:0.9rem;">Men</span>
+                            </div>
+                            <div style="background:${t.accent}; color:#000; padding:8px 20px; border-radius:999px; font-weight:700; font-size:0.9rem;">🛍 Cart (0)</div>
+                        </div>
+                        <!-- Hero -->
+                        <div style="padding:60px 5%; display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center;">
+                            <div>
+                                <div style="display:inline-block; border:1px solid ${t.accent}40; color:${t.accent}; padding:5px 14px; border-radius:999px; font-size:0.75rem; font-weight:700; letter-spacing:0.05em; margin-bottom:25px;">✦ NEW COLLECTION 2025</div>
+                                <div style="font-family:'Playfair Display',serif; font-size:3.5rem; font-weight:900; color:white; line-height:1; margin-bottom:20px;">Style That<br><em style="color:${t.accent};">Speaks</em><br>For You</div>
+                                <p style="color:rgba(255,255,255,0.55); line-height:1.7; margin-bottom:30px; max-width:400px;">Discover premium fashion for men, women and children.</p>
+                                <div style="display:flex; gap:12px;">
+                                    <div style="background:${t.accent}; color:#000; padding:12px 28px; border-radius:999px; font-weight:700; font-size:0.9rem;">Shop Now →</div>
+                                    <div style="border:1px solid rgba(255,255,255,0.2); color:white; padding:12px 28px; border-radius:999px; font-size:0.9rem;">Browse Categories</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:16px; justify-content:center;">
+                                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:20px; width:160px;">
+                                    <div style="font-size:3.5rem; text-align:center; margin:15px 0;">👗</div>
+                                    <div style="color:rgba(255,255,255,0.5); font-size:0.7rem; text-transform:uppercase;">WOMEN'S</div>
+                                    <div style="color:white; font-weight:600; font-size:0.9rem;">Floral Maxi Dress</div>
+                                    <div style="color:${t.accent}; font-weight:800; margin-top:5px;">GH₵ 280</div>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:20px; width:160px; margin-top:40px;">
+                                    <div style="font-size:3.5rem; text-align:center; margin:15px 0;">👟</div>
+                                    <div style="color:rgba(255,255,255,0.5); font-size:0.7rem; text-transform:uppercase;">MEN'S</div>
+                                    <div style="color:white; font-weight:600; font-size:0.9rem;">Leather Sneakers</div>
+                                    <div style="color:${t.accent}; font-weight:800; margin-top:5px;">GH₵ 350</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Action bar -->
+                    <div style="background:#111; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.07);">
+                        <span style="color:#888; font-size:0.85rem;">Preview of <strong style="color:white;">${t.name}</strong></span>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="document.getElementById('templatePreviewOverlay').remove()" style="background:transparent; color:white; border:1px solid rgba(255,255,255,0.2); padding:9px 20px; border-radius:999px; font-weight:600; cursor:pointer; font-family:var(--font-body);">Close</button>
+                            ${t.active ? '<span style="color:var(--lime); font-weight:600; font-size:0.9rem;">✓ Already Active</span>' : '<button onclick="document.getElementById(\'templatePreviewOverlay\').remove(); activateTemplate(\'' + t.id + '\');" style="background:' + t.accent + '; color:#000; border:none; padding:9px 24px; border-radius:999px; font-weight:700; cursor:pointer; font-family:var(--font-body);">Activate This Template</button>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+        }
+
+        // Initialize Plugins & Templates on load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderPlugins();
+            renderTemplates();
+        });
+
+
+        // 4. Chart Initialization
+        document.addEventListener("DOMContentLoaded", function() {
+            renderAdminProducts();
+            const chartCanvas = document.getElementById('revenueChart');
+            if(!chartCanvas) return;
+            
+            const ctx = chartCanvas.getContext('2d');
+            
+            // Create a stunning lime gradient for the line graph
+            let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(197, 241, 53, 0.4)');
+            gradient.addColorStop(1, 'rgba(197, 241, 53, 0.0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Revenue (GH₵)',
+                        data: [1200, 1900, 1500, 2200, 2800, 3100, 2500],
+                        borderColor: '#C5F135',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#161616',
+                        pointBorderColor: '#C5F135',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e1e1e',
+                            titleColor: '#888',
+                            bodyColor: '#C5F135',
+                            bodyFont: { weight: 'bold', size: 14 },
+                            padding: 12,
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1,
+                            displayColors: false,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: { color: '#888' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: { color: '#888', callback: function(value) { return 'GH₵ ' + value; } }
+                        }
+                    }
+                }
+            });
+        });
+
+        // ═══════════════════════════════════════════
+        //  ADMIN LOGIN — Credential-based (Super Admin managed)
+        // ═══════════════════════════════════════════
+        const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.origin === "null" || window.location.protocol === "file:") ? "http://localhost:5000/api" : window.location.origin + "/api";
+        let _selectedAccount = "accra";
+
+        // Check if already logged in
+        (function bootAdminDash() {
+            const saved = sessionStorage.getItem("admin_session");
+            if (saved) {
+                try {
+                    const sess = JSON.parse(saved);
+                    applyAdminSession(sess);
+                } catch {
+                    sessionStorage.removeItem("admin_session");
+                }
+            }
+        })();
+
+        function selectAccount(account, btn) {
+            _selectedAccount = account;
+            document.getElementById("loginBtnAccra").style.background   = account === "accra" ? "var(--lime)" : "transparent";
+            document.getElementById("loginBtnAccra").style.color        = account === "accra" ? "var(--black)" : "var(--grey2)";
+            document.getElementById("loginBtnAccra").style.borderColor  = account === "accra" ? "var(--lime)"  : "var(--border)";
+            document.getElementById("loginBtnHo").style.background      = account === "ho"    ? "var(--lime)" : "transparent";
+            document.getElementById("loginBtnHo").style.color           = account === "ho"    ? "var(--black)" : "var(--grey2)";
+            document.getElementById("loginBtnHo").style.borderColor     = account === "ho"    ? "var(--lime)"  : "var(--border)";
+        }
+
+        async function doAdminLogin() {
+            const username = document.getElementById("adminLoginUser").value.trim();
+            const password = document.getElementById("adminLoginPass").value;
+            const errEl    = document.getElementById("adminLoginError");
+            const btn      = document.getElementById("doLoginBtn");
+
+            if (!username || !password) {
+                errEl.textContent = "Username and password are required.";
+                errEl.style.display = "block";
+                return;
+            }
+
+            btn.textContent = "Signing in…";
+            btn.disabled    = true;
+            errEl.style.display = "none";
+
+            try {
+                const res  = await fetch(API_BASE + "/admin/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password, account: _selectedAccount })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || "Login failed");
+                }
+
+                const session = {
+                    username:  data.username,
+                    account:   data.account,
+                    full_name: data.full_name,
+                    region:    data.account === "ho" ? "Ho" : "Accra",
+                };
+                sessionStorage.setItem("admin_session", JSON.stringify(session));
+                applyAdminSession(session);
+
+            } catch (err) {
+                errEl.textContent   = err.message;
+                errEl.style.display = "block";
+            } finally {
+                btn.textContent = "Sign In";
+                btn.disabled    = false;
+            }
+        }
+
+        function applyAdminSession(sess) {
+            // Set region and hide overlay
+            if (typeof setAdminRegion === "function") {
+                setAdminRegion(sess.region.charAt(0).toUpperCase() + sess.region.slice(1));
+            } else {
+                window._adminRegion = sess.region.charAt(0).toUpperCase() + sess.region.slice(1);
+            }
+            document.getElementById("adminLoginOverlay").style.display = "none";
+            // Update name badge
+            const nameEl   = document.getElementById("adminName");
+            const avatarEl = document.getElementById("adminAvatar");
+            if (nameEl)   nameEl.textContent   = sess.full_name || sess.username;
+            if (avatarEl) avatarEl.textContent  = (sess.username || "A").slice(0,2).toUpperCase();
+            // Initialize live chat with region
+            const chatAccount = sess.account || (sess.region && sess.region.toLowerCase() === 'ho' ? 'ho' : 'accra');
+            if (typeof initAdminChat === "function") initAdminChat(chatAccount);
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem("admin_session");
+            document.getElementById("adminLoginUser").value = "";
+            document.getElementById("adminLoginPass").value = "";
+            document.getElementById("adminLoginError").style.display = "none";
+            document.getElementById("adminLoginOverlay").style.display = "flex";
+        }
+
+    /* ============================================================
+       ADMIN LIVE CHAT LOGIC
+    ============================================================ */
+    const ADMIN_CHAT_HO_REGIONS = [
+        'Upper East', 'North East', 'Northern', 'Oti', 'Volta',
+        'Upper West', 'Savannah', 'Bono East'
+    ];
+
+    let adminChatTarget = null;  // 'accra' or 'ho'
+    let selectedChatId = null;
+    let adminChatLastSeen = {}; // { sessionId: msgCount }
+    let adminChatPoll = null;
+
+    // Called after admin logs in — set chat region filter
+    function initAdminChat(adminAccount) {
+        adminChatTarget = adminAccount; // 'accra' or 'ho'
+        const label = document.getElementById('adminChatRegionLabel');
+        if (label) label.textContent = 'Region: ' + (adminAccount === 'ho' ? 'Ho Belt' : 'Accra Belt');
+        loadAdminChatList();
+        // Poll for new messages every 2 seconds
+        if (adminChatPoll) clearInterval(adminChatPoll);
+        adminChatPoll = setInterval(() => {
+            loadAdminChatList();
+            if (selectedChatId) renderAdminConversation(selectedChatId);
+        }, 2000);
+    }
+
+    function getAdminChats() {
+        const all = JSON.parse(localStorage.getItem('lime_live_chats') || '{}');
+        if (!adminChatTarget) return [];
+        return Object.values(all).filter(chat => {
+            return chat.adminTarget === adminChatTarget;
+        }).sort((a, b) => new Date(b.lastActivity || b.createdAt) - new Date(a.lastActivity || a.createdAt));
+    }
+
+    function getUnreadCount(chat) {
+        const seen = adminChatLastSeen[chat.id] || 0;
+        const custMsgs = (chat.messages || []).filter(m => m.from === 'customer');
+        return Math.max(0, custMsgs.length - seen);
+    }
+
+    function loadAdminChatList() {
+        const chats = getAdminChats();
+        const listEl = document.getElementById('adminChatList');
+        const countEl = document.getElementById('chatListCount');
+        if (!listEl) return;
+
+        const totalUnread = chats.reduce((sum, c) => sum + getUnreadCount(c), 0);
+        if (countEl) countEl.textContent = chats.length;
+
+        // Update sidebar badge
+        const badge = document.getElementById('chatBadge');
+        if (badge) {
+            if (totalUnread > 0) { badge.textContent = totalUnread; badge.style.display = 'inline-block'; }
+            else { badge.style.display = 'none'; }
+        }
+
+        if (chats.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center; padding:40px 20px; color:var(--grey); font-size:0.88rem;">No incoming chats for your region yet.</div>';
+            return;
+        }
+
+        listEl.innerHTML = chats.map(chat => {
+            const lastMsg = chat.messages && chat.messages.length ? chat.messages[chat.messages.length-1] : null;
+            const preview = lastMsg ? (lastMsg.from === 'admin' ? '✓ You: ' : '') + truncate(lastMsg.text, 45) : 'No messages yet';
+            const unread = getUnreadCount(chat);
+            const isSelected = chat.id === selectedChatId;
+            const isClosed = chat.status === 'closed';
+            const timeAgo = lastMsg ? fmtTime(lastMsg.time) : fmtTime(chat.createdAt);
+            return `
+            <div onclick="selectAdminChat('${chat.id}')" style="
+                padding:12px 14px; border-radius:12px; cursor:pointer; margin-bottom:6px;
+                background:${isSelected ? 'var(--lime-muted)' : 'transparent'};
+                border:1px solid ${isSelected ? 'var(--lime-border)' : 'var(--border)'};
+                transition:all 0.18s; display:flex; flex-direction:column; gap:4px;
+                opacity:${isClosed ? '0.55' : '1'};
+            " onmouseover="if('${chat.id}'!==selectedChatId) this.style.background='var(--dark3)'" onmouseout="if('${chat.id}'!==selectedChatId) this.style.background='transparent'">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:700; font-size:0.88rem; color:${isSelected ? 'var(--lime)' : 'var(--white)'};">📍 ${escAdm(chat.region)}</span>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        ${unread > 0 ? `<span style="background:#ef4444; color:white; border-radius:50%; width:18px; height:18px; font-size:0.65rem; font-weight:800; display:flex; align-items:center; justify-content:center;">${unread}</span>` : ''}
+                        <span style="font-size:0.7rem; color:var(--grey);">${timeAgo}</span>
+                    </div>
+                </div>
+                <div style="font-size:0.78rem; color:var(--grey2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escAdm(preview)}</div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <span style="font-size:0.68rem; color:${isClosed ? '#ef4444' : '#22c55e'}; font-weight:600;">${isClosed ? '○ Closed' : '● Open'}</span>
+                    <span style="font-size:0.68rem; color:var(--grey);">· ${chat.id}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function selectAdminChat(chatId) {
+        selectedChatId = chatId;
+        // Mark as seen
+        const all = JSON.parse(localStorage.getItem('lime_live_chats') || '{}');
+        const chat = all[chatId];
+        if (chat) {
+            adminChatLastSeen[chatId] = (chat.messages || []).filter(m => m.from === 'customer').length;
+        }
+        document.getElementById('chatEmptyState').style.display = 'none';
+        document.getElementById('activeChatView').style.display = 'flex';
+        renderAdminConversation(chatId);
+        loadAdminChatList();
+    }
+
+    function renderAdminConversation(chatId) {
+        const all = JSON.parse(localStorage.getItem('lime_live_chats') || '{}');
+        const chat = all[chatId];
+        if (!chat) return;
+
+        document.getElementById('activeChatTitle').textContent = 'Customer — ' + chat.region;
+        document.getElementById('activeChatMeta').textContent = chat.id + ' · ' + (chat.status === 'closed' ? 'Closed' : 'Open');
+
+        const container = document.getElementById('adminChatMessages');
+        const prevScrollHeight = container.scrollHeight;
+        const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 30;
+
+        container.innerHTML = (chat.messages || []).map(msg => {
+            const isAdmin = msg.from === 'admin';
+            return `<div style="display:flex; flex-direction:column; max-width:80%; align-self:${isAdmin ? 'flex-end' : 'flex-start'}; animation:fadeIn 0.2s ease;">
+                <div style="
+                    background:${isAdmin ? 'var(--lime)' : 'var(--dark3)'};
+                    color:${isAdmin ? 'var(--black)' : 'var(--off-white, #f4f4f2)'};
+                    border-radius:${isAdmin ? '16px 4px 16px 16px' : '4px 16px 16px 16px'};
+                    padding:10px 14px; font-size:0.88rem; line-height:1.5;
+                    border:1px solid ${isAdmin ? 'transparent' : 'var(--border)'};
+                    font-weight:${isAdmin ? '700' : '400'};
+                ">${escAdm(msg.text)}</div>
+                <div style="font-size:0.68rem; color:var(--grey); margin-top:3px; align-self:${isAdmin ? 'flex-end' : 'flex-start'}; padding:0 4px;">${isAdmin ? '🧑‍💼 You' : '👤 Customer'} · ${fmtTime(msg.time)}</div>
+            </div>`;
+        }).join('');
+
+        if (wasAtBottom) container.scrollTop = container.scrollHeight;
+
+        // Disable reply if closed
+        const replyInput = document.getElementById('adminReplyInput');
+        if (replyInput) replyInput.disabled = chat.status === 'closed';
+    }
+
+    function sendAdminReply() {
+        if (!selectedChatId) return;
+        const input = document.getElementById('adminReplyInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const all = JSON.parse(localStorage.getItem('lime_live_chats') || '{}');
+        const chat = all[selectedChatId];
+        if (!chat || chat.status === 'closed') return;
+
+        chat.messages.push({ from: 'admin', text: text, time: new Date().toISOString() });
+        chat.lastActivity = new Date().toISOString();
+        all[selectedChatId] = chat;
+        localStorage.setItem('lime_live_chats', JSON.stringify(all));
+
+        input.value = '';
+        input.style.height = 'auto';
+        renderAdminConversation(selectedChatId);
+        loadAdminChatList();
+    }
+
+    function closeSelectedChat() {
+        if (!selectedChatId) return;
+        if (!confirm('Close this chat session?')) return;
+        const all = JSON.parse(localStorage.getItem('lime_live_chats') || '{}');
+        if (all[selectedChatId]) {
+            all[selectedChatId].status = 'closed';
+            all[selectedChatId].lastActivity = new Date().toISOString();
+            localStorage.setItem('lime_live_chats', JSON.stringify(all));
+        }
+        renderAdminConversation(selectedChatId);
+        loadAdminChatList();
+    }
+
+    function clearClosedChats() {
+        const all = JSON.parse(localStorage.getItem('lime_live_chats') || '{}');
+        Object.keys(all).forEach(id => { if (all[id].status === 'closed') delete all[id]; });
+        localStorage.setItem('lime_live_chats', JSON.stringify(all));
+        if (selectedChatId && !all[selectedChatId]) {
+            selectedChatId = null;
+            document.getElementById('chatEmptyState').style.display = 'flex';
+            document.getElementById('activeChatView').style.display = 'none';
+        }
+        loadAdminChatList();
+    }
+
+    // Listen for realtime storage updates from customer page
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'lime_live_chats') {
+            loadAdminChatList();
+            if (selectedChatId) renderAdminConversation(selectedChatId);
+        }
+    });
+
+    function truncate(str, n) { return str && str.length > n ? str.slice(0, n) + '…' : (str || ''); }
+    function escAdm(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function fmtTime(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        const now = new Date();
+        if (now - d < 60000) return 'Just now';
+        if (now.toDateString() === d.toDateString()) return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        return d.toLocaleDateString([], {month:'short', day:'numeric'}) + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }
+
+    // Hook into applyAdminSession to initialize chat when admin logs in
+    const _origApplyAdminSession = typeof applyAdminSession !== 'undefined' ? applyAdminSession : null;
+    // Patch the existing applyAdminSession by overriding after script load
+    document.addEventListener('DOMContentLoaded', function() {
+        // After login, auto-init chat if already logged in
+        const saved = sessionStorage.getItem('admin_session');
+        if (saved) {
+            try {
+                const sess = JSON.parse(saved);
+                const account = sess.account || (sess.region === 'Ho' ? 'ho' : 'accra');
+                initAdminChat(account);
+            } catch(e) {}
+        }
+    });
+
+    // Also intercept tab switching to init chat on first open
+    const _origSwitchTab = switchTab;
+    switchTab = function(tabId) {
+        _origSwitchTab(tabId);
+        if (tabId === 'livechat' && !adminChatPoll) {
+            const saved = sessionStorage.getItem('admin_session');
+            if (saved) {
+                try {
+                    const sess = JSON.parse(saved);
+                    initAdminChat(sess.account || 'accra');
+                } catch(e) {}
+            }
+        }
+    };
+    </script>
+
+</body>
+</html>
