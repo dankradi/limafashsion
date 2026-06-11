@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lima Fashion — Super Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="superadmin.css">
+
+<style>
+.plugin-filter, .template-filter, .s-pill { padding: 8px 18px; border-radius: 999px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--dark2); color: var(--grey2); transition: all 0.2s; }
+.plugin-filter.active, .template-filter.active, .s-pill.active { background: var(--lime); color: var(--black); border: none; }
+.plugin-card { padding: 24px; transition: all 0.2s; cursor: default; position: relative; overflow: hidden; background: var(--dark2); border: 1px solid var(--border); border-radius: 12px; }
+.panel { background: var(--dark2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+.dashboard-grid { display: grid; gap: 24px; }
+.s-section { display: none; }
+.s-section.active { display: block; }
+.sf { margin-bottom: 15px; }
+.sl { display: block; font-size: 0.85rem; color: var(--grey2); margin-bottom: 6px; font-weight: 600; }
+.si { width: 100%; padding: 12px; background: var(--dark3); border: 1px solid var(--border); border-radius: 8px; color: var(--white); outline: none; }
+.si:focus { border-color: var(--lime); }
+.stoggle { margin-bottom: 15px; display: flex; flex-direction: column; }
+.tgl { position: relative; display: inline-block; width: 44px; height: 24px; }
+.tgl input { opacity: 0; width: 0; height: 0; }
+.tgl-track { position: absolute; inset: 0; background: var(--dark4); border-radius: 12px; transition: 0.3s; cursor: pointer; }
+.tgl-track:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: var(--grey); border-radius: 50%; transition: 0.3s; }
+.tgl input:checked + .tgl-track { background: var(--lime); }
+.tgl input:checked + .tgl-track:before { transform: translateX(20px); background: var(--black); }
+.ntoggle { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.nsub { font-size: 0.8rem; color: var(--grey); }
+.dz-btn { background: var(--dark3); color: white; border: 1px solid rgba(239,68,68,0.4); border-radius: 999px; padding: 10px 18px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.dz-btn:hover { background: rgba(239,68,68,0.1); }
+.diff-up { color: var(--lime); background: var(--lime-muted); padding: 2px 8px; border-radius: 6px; font-weight: 600;}
+select option { background-color: #1e1e1e; color: #ffffff; }
+
+/* Multi-image uploader widget styles */
+.progress-ring__circle {
+    transition: stroke-dashoffset 0.1s;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.progress-ring {
+    animation: spin 2s linear infinite;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════ -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-bg-orbs">
+    <span class="orb orb1"></span>
+    <span class="orb orb2"></span>
+    <span class="orb orb3"></span>
+  </div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">👑</div>
+      <h1>Lima Fashion</h1>
+      <p class="login-subtitle">Lima Portal</p>
+    </div>
+    <form id="loginForm" class="login-form" novalidate>
+      <div class="field-group">
+        <label for="loginUser">Username</label>
+        <input id="loginUser" type="text" placeholder="Enter username" autocomplete="username" required>
+      </div>
+      <div class="field-group">
+        <label for="loginPass">Password</label>
+        <input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password" required>
+      </div>
+      <div id="loginError" class="login-error hidden"></div>
+      <button type="submit" id="loginBtn" class="btn-primary btn-full">
+        <span id="loginBtnText">Sign In</span>
+        <span id="loginSpinner" class="spinner hidden"></span>
+      </button>
+    </form>
+    <p class="login-note">🔒 Restricted access — Authorised personnel only</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════ -->
+<div id="dashboard" class="dashboard hidden">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">👑</span>
+      <div>
+        <div class="brand-name">Lima Fashion</div>
+        <div class="brand-role">Super Admin</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="overview">
+        <span class="nav-icon">📊</span> Overview
+      </button>
+      <button class="nav-item" data-tab="ho">
+        <span class="nav-icon">🏙️</span> Ho Account
+      </button>
+      <button class="nav-item" data-tab="accra">
+        <span class="nav-icon">🌆</span> Accra Account
+      </button>
+      <button class="nav-item" data-tab="admins">
+        <span class="nav-icon">👥</span> Admin Users
+      </button>
+      <button class="nav-item" data-tab="activity">
+        <span class="nav-icon">📋</span> Activity Log
+      </button>
+    
+      <button class="nav-item" data-tab="products">
+        <span class="nav-icon">👗</span> Products
+      </button>
+      <button class="nav-item" data-tab="plugins">
+        <span class="nav-icon">🔌</span> Plugins
+      </button>
+      <button class="nav-item" data-tab="templates">
+        <span class="nav-icon">🎨</span> Templates
+      </button>
+      <button class="nav-item" data-tab="settings">
+        <span class="nav-icon">⚙️</span> Settings
+      </button>
+</nav>
+    <div class="sidebar-footer">
+      <div class="admin-badge">
+        <span class="admin-avatar">SA</span>
+        <div>
+          <div class="admin-name" id="sidebarUsername">superadmin</div>
+          <div class="admin-status">● Online</div>
+        </div>
+      </div>
+      <button id="logoutBtn" class="btn-logout">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div>
+        <h2 id="tabTitle">Overview</h2>
+        <span id="tabSubtitle" class="tab-subtitle">All regions combined</span>
+      </div>
+      <div class="topbar-actions">
+        <button id="refreshBtn" class="btn-icon" title="Refresh">🔄</button>
+        <div class="live-indicator"><span class="live-dot"></span> Live</div>
+      </div>
+    </header>
+
+    <!-- TAB: Overview -->
+    <section id="tab-overview" class="tab-content active">
+      <div class="stats-grid" id="overviewStats">
+        <div class="stat-card accent-gold">
+          <div class="stat-icon">💰</div>
+          <div class="stat-body">
+            <div class="stat-value" id="totalRevenue">—</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+        </div>
+        <div class="stat-card accent-blue">
+          <div class="stat-icon">📦</div>
+          <div class="stat-body">
+            <div class="stat-value" id="totalOrders">—</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+        </div>
+        <div class="stat-card accent-green">
+          <div class="stat-icon">👤</div>
+          <div class="stat-body">
+            <div class="stat-value" id="totalCustomers">—</div>
+            <div class="stat-label">Total Customers</div>
+          </div>
+        </div>
+        <div class="stat-card accent-purple">
+          <div class="stat-icon">👥</div>
+          <div class="stat-body">
+            <div class="stat-value" id="activeAdmins">—</div>
+            <div class="stat-label">Active Admins</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <h3>🏙️ Ho Region</h3>
+          </div>
+          <div class="region-mini" id="hoMini">Loading…</div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>🌆 Accra Region</h3>
+          </div>
+          <div class="region-mini" id="accraMini">Loading…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: Ho Account -->
+    <section id="tab-ho" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h3>🏙️ Ho — Orders</h3>
+          <button class="btn-sm" onclick="loadRegionOrders('Ho')">Refresh</button>
+        </div>
+        <div class="table-wrap" id="hoOrdersTable">Loading…</div>
+      </div>
+    </section>
+
+    <!-- TAB: Accra Account -->
+    <section id="tab-accra" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h3>🌆 Accra — Orders</h3>
+          <button class="btn-sm" onclick="loadRegionOrders('Accra')">Refresh</button>
+        </div>
+        <div class="table-wrap" id="accraOrdersTable">Loading…</div>
+      </div>
+    </section>
+
+    <!-- TAB: Admin Users -->
+    <section id="tab-admins" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h3>👥 Admin Users</h3>
+          <button class="btn-primary btn-sm" id="openAddAdminBtn">+ Add Admin</button>
+        </div>
+        <div class="table-wrap" id="adminUsersTable">Loading…</div>
+      </div>
+    </section>
+
+    <!-- TAB: Activity Log -->
+    <section id="tab-activity" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 Activity Log</h3>
+          <div class="filter-row">
+            <select id="activityFilter" class="select-sm">
+              <option value="">All Regions</option>
+              <option value="ho">Ho</option>
+              <option value="accra">Accra</option>
+            </select>
+            <button class="btn-sm" onclick="loadActivityLog()">Filter</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="activityTable">Loading…</div>
+      </div>
+    </section>
+
+  <!-- ==================== PRODUCTS TAB ==================== -->
+        <div id="tab-products" class="tab-content">
+            <header class="header">
+                <h1>Products Database</h1>
+                <button class="btn-lime" onclick="openAddProductModal()">+ Add Product</button>
+            </header>
+            <div class="panel">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Icon</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Total Stock</th>
+                                <th>Unassigned</th>
+                                <th>Ho Stock</th>
+                                <th>Accra Stock</th>
+                                <th>Badge</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductsTable">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADD PRODUCT MODAL -->
+        <div id="addProductModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+            <div style="background: var(--dark2); padding: 30px; border-radius: var(--radius-xl); width: 400px; border: 1px solid var(--border);">
+                <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 20px;">Add New Product</h3>
+                <input id="pName" type="text" placeholder="Product Name (e.g. Silk Dress)" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                
+                <div style="margin-bottom:15px;">
+                    <label style="color:var(--grey2); font-size:0.85rem; display:block; margin-bottom:8px;">Product Images</label>
+                    <div id="imageUploadWrapper" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                        <div id="uploadTrigger" style="width:68px; height:68px; background:#10B981; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; font-size:2rem; font-weight:300; transition:background 0.2s;" onclick="document.getElementById('pImage').click()" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10B981'">
+                            +
+                        </div>
+                        <div id="imagePreviewContainer" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;"></div>
+                    </div>
+                    <input id="pImage" type="file" multiple accept="image/*" style="display:none;" onchange="handleImageSelection(event)">
+                    <span style="font-size:0.75rem; color:var(--grey); display:block; margin-top:8px;">You can select multiple pictures. Click an image to remove it.</span>
+                </div>
+                
+                <select id="pCat" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="WOMEN">Women's Collection</option>
+                    <option value="MEN">Men's Collection</option>
+                    <option value="CHILDREN">Children's Collection</option>
+                </select>
+
+                <select id="pSizeType" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                    <option value="none">No Sizes</option>
+                    <option value="shoe">Shoe Sizes (EU)</option>
+                    <option value="dress">Dress Sizes (S, M, L, XL, XXL)</option>
+                </select>
+
+                <input id="pPrice" type="number" placeholder="Price (GH₵)" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <input id="pStockTotal" type="number" placeholder="Total Stock" style="flex:1; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); outline:none;" oninput="calcUnassigned()">
+                    <input id="pStockHo" type="number" placeholder="Ho Stock" style="flex:1; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); outline:none;" oninput="calcUnassigned()">
+                    <input id="pStockAccra" type="number" placeholder="Accra Stock" style="flex:1; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); outline:none;" oninput="calcUnassigned()">
+                </div>
+                <div style="margin-bottom:15px; font-size:0.85rem; color:var(--grey2);">
+                    Unassigned Stock: <strong id="pStockUnassignedTxt" style="color:var(--lime);">0</strong>
+                </div>
+
+                <select id="pBadge" style="width:100%; margin-bottom:25px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                    <option value="">No Badge</option>
+                    <option value="NEW">NEW</option>
+                    <option value="HOT">HOT</option>
+                    <option value="BEST SELLER">BEST SELLER</option>
+                </select>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-lime" style="flex:1; padding: 12px; font-size:1rem;" onclick="saveNewProduct()">Save Product</button>
+                    <button style="flex:1; background:transparent; color:white; border:1px solid var(--border); border-radius:var(--radius-pill); font-weight:700; cursor:pointer;" onclick="closeAddProductModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        
+<!-- ==================== PLUGINS TAB ==================== -->
+        <div id="tab-plugins" class="tab-content">
+            <header class="header">
+                <h1>Plugins & Integrations</h1>
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Search plugins..." oninput="filterPlugins(this.value)">
+                </div>
+            </header>
+
+            <!-- Plugin Category Filters -->
+            <div style="display:flex; gap:10px; margin-bottom:30px; flex-wrap:wrap;">
+                <button class="plugin-filter active" onclick="filterPluginCat('all', this)" style="background:var(--lime); color:var(--black); border:none; padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">All</button>
+                <button class="plugin-filter" onclick="filterPluginCat('payment', this)" style="background:var(--dark2); color:var(--grey2); border:1px solid var(--border); padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">💳 Payment</button>
+                <button class="plugin-filter" onclick="filterPluginCat('marketing', this)" style="background:var(--dark2); color:var(--grey2); border:1px solid var(--border); padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">📣 Marketing</button>
+                <button class="plugin-filter" onclick="filterPluginCat('shipping', this)" style="background:var(--dark2); color:var(--grey2); border:1px solid var(--border); padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">🚚 Shipping</button>
+                <button class="plugin-filter" onclick="filterPluginCat('analytics', this)" style="background:var(--dark2); color:var(--grey2); border:1px solid var(--border); padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">📊 Analytics</button>
+                <button class="plugin-filter" onclick="filterPluginCat('social', this)" style="background:var(--dark2); color:var(--grey2); border:1px solid var(--border); padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">🌐 Social</button>
+            </div>
+
+            <!-- Plugins Grid -->
+            <div id="pluginsGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px;">
+                <!-- JS Injected -->
+            </div>
+        </div>
+
+        <!-- ==================== TEMPLATES TAB ==================== -->
+        <div id="tab-templates" class="tab-content">
+            <header class="header">
+                <h1>Store Templates</h1>
+                <button class="btn-lime">+ Upload Template</button>
+            </header>
+
+            <!-- Active Template Banner -->
+            <div class="panel" style="margin-bottom:30px; border-color:var(--lime-border); background:linear-gradient(135deg, rgba(197,241,53,0.05) 0%, var(--dark2) 100%);">
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;">
+                    <div style="display:flex; align-items:center; gap:18px;">
+                        <div style="width:54px; height:54px; background:var(--lime); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.6rem;">✨</div>
+                        <div>
+                            <h3 style="font-family:var(--font-display); font-size:1.4rem; margin-bottom:4px;">Midnight Luxe</h3>
+                            <p style="color:var(--grey2); font-size:0.9rem;">Currently active · Dark premium theme with lime accents</p>
+                        </div>
+                    </div>
+                    <span class="status-pill status-delivered" style="font-size:0.8rem;">ACTIVE</span>
+                </div>
+            </div>
+
+            <!-- Template Category Tabs -->
+            <div style="display:flex; gap:10px; margin-bottom:30px; flex-wrap:wrap;">
+                <button class="template-filter active" onclick="filterTemplateCat('all', this)" style="background:var(--lime); color:var(--black); border:none; padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">All Templates</button>
+                <button class="template-filter" onclick="filterTemplateCat('fashion', this)" style="background:var(--dark2); color:var(--grey2); border:1px solid var(--border); padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">👗 Fashion</button>
+                <button class="template-filter" onclick="filterTemplateCat('minimal', this)" style="background:var(--dark2); color:var(--grey2); border:1px solid var(--border); padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">🖤 Minimal</button>
+                <button class="template-filter" onclick="filterTemplateCat('bold', this)" style="background:var(--dark2); color:var(--grey2); border:1px solid var(--border); padding:8px 18px; border-radius:var(--radius-pill); font-weight:600; cursor:pointer; font-family:var(--font-body); transition:var(--transition);">🔥 Bold</button>
+            </div>
+
+            <!-- Templates Grid -->
+            <div id="templatesGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:24px;"></div>
+        </div>
+
+        <!-- ==================== SETTINGS TAB ==================== -->
+        <div id="tab-settings" class="tab-content">
+            <header class="header">
+                <h1>Store Settings</h1>
+                <button class="btn-lime" onclick="saveAllSettings()">💾 Save All Changes</button>
+            </header>
+
+            <!-- Settings Sub-Nav -->
+            <div style="display:flex; gap:8px; margin-bottom:30px; flex-wrap:wrap;" id="settingsPillBar">
+                <button class="s-pill active" onclick="showSettingsSection('general',this)">🏪 General</button>
+                <button class="s-pill" onclick="showSettingsSection('brand',this)">🎨 Brand</button>
+                <button class="s-pill" onclick="showSettingsSection('delivery',this)">🚚 Delivery</button>
+                <button class="s-pill" onclick="showSettingsSection('orders',this)">📦 Orders</button>
+                <button class="s-pill" onclick="showSettingsSection('notifications',this)">🔔 Alerts</button>
+                <button class="s-pill" onclick="showSettingsSection('social',this)">🌐 Social</button>
+                <button class="s-pill" onclick="showSettingsSection('seo',this)">📈 SEO</button>
+                <button class="s-pill" onclick="showSettingsSection('security',this)">🔒 Security</button>
+                <button class="s-pill" onclick="showSettingsSection('payments',this)">💳 Payments</button>
+                <button class="s-pill" onclick="showSettingsSection('danger',this)" style="color:var(--error);">⚠ Danger</button>
+            </div>
+
+            <!-- ── GENERAL ── -->
+            <div id="ss-general" class="s-section">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="panel">
+                        <h3 class="ptitle">🏪 Store Identity</h3>
+                        <div class="sf"><label class="sl">Store Name</label><input id="cfg_store_name" type="text" value="Lime.Fashion" class="si"></div>
+                        <div class="sf"><label class="sl">Store Tagline</label><input id="cfg_tagline" type="text" value="Style That Speaks For You" class="si"></div>
+                        <div class="sf"><label class="sl">Support Email</label><input id="cfg_email" type="email" value="hello@limefashion.gh" class="si"></div>
+                        <div class="sf"><label class="sl">Phone Number</label><input id="cfg_phone" type="tel" value="+233 24 000 0000" class="si"></div>
+                        <div class="sf"><label class="sl">WhatsApp Business</label><input id="cfg_whatsapp" type="tel" value="+233 24 000 0000" class="si"></div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="ptitle">📍 Region &amp; Locale</h3>
+                        <div class="sf"><label class="sl">Default Currency</label>
+                            <select id="cfg_currency" class="si"><option selected>Ghana Cedi (GH₵)</option><option>US Dollar ($)</option><option>Euro (€)</option><option>British Pound (£)</option></select></div>
+                        <div class="sf"><label class="sl">Store City</label><input id="cfg_city" type="text" value="Accra" class="si"></div>
+                        <div class="sf"><label class="sl">Store Country</label>
+                            <select id="cfg_country" class="si"><option selected>Ghana</option><option>Nigeria</option><option>Ivory Coast</option><option>Senegal</option></select></div>
+                        <div class="sf"><label class="sl">Timezone</label>
+                            <select id="cfg_tz" class="si"><option selected>Africa/Accra (GMT+0)</option><option>Africa/Lagos (GMT+1)</option><option>Africa/Nairobi (GMT+3)</option></select></div>
+                        <div class="sf"><label class="sl">Date Format</label>
+                            <select id="cfg_datefmt" class="si"><option selected>DD/MM/YYYY</option><option>MM/DD/YYYY</option><option>YYYY-MM-DD</option></select></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── BRAND ── -->
+            <div id="ss-brand" class="s-section" style="display:none;">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="panel">
+                        <h3 class="ptitle">🎨 Colors &amp; Fonts</h3>
+                        <div class="sf"><label class="sl">Primary Accent</label>
+                            <div style="display:flex;gap:12px;align-items:center;">
+                                <input type="color" id="cfg_accent" value="#C5F135" style="width:52px;height:46px;background:var(--dark3);border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:3px;" onchange="document.getElementById('accentHex').innerText=this.value">
+                                <div><div id="accentHex" style="font-family:monospace;color:var(--lime);font-weight:700;">#C5F135</div><div style="color:var(--grey);font-size:0.78rem;">Buttons, prices &amp; highlights</div></div>
+                            </div></div>
+                        <div class="sf"><label class="sl">Secondary / CTA Color</label>
+                            <div style="display:flex;gap:12px;align-items:center;">
+                                <input type="color" id="cfg_secondary" value="#ffd700" style="width:52px;height:46px;background:var(--dark3);border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:3px;">
+                                <div style="color:var(--grey);font-size:0.78rem;">Add to Cart &amp; detail page CTA</div>
+                            </div></div>
+                        <div class="sf"><label class="sl">Body Font</label>
+                            <select id="cfg_font" class="si"><option selected>Outfit</option><option>Inter</option><option>Roboto</option><option>Montserrat</option><option>Poppins</option></select></div>
+                        <div class="sf"><label class="sl">Display / Heading Font</label>
+                            <select id="cfg_hfont" class="si"><option selected>Playfair Display</option><option>Georgia</option><option>Merriweather</option><option>Libre Baskerville</option></select></div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="ptitle">🖼 Storefront Copy</h3>
+                        <div class="sf"><label class="sl">Hero Headline</label><input id="cfg_hero_h" type="text" value="Style That Speaks For You" class="si"></div>
+                        <div class="sf"><label class="sl">Hero Sub-text</label><textarea id="cfg_hero_sub" class="si" rows="3" style="resize:vertical;">Discover premium fashion for men, women and children.</textarea></div>
+                        <div class="sf"><label class="sl">Products Per Page</label>
+                            <select id="cfg_per_page" class="si"><option>8</option><option selected>12</option><option>16</option><option>24</option><option>All</option></select></div>
+                        <div class="sf"><label class="sl">Featured Products on Homepage</label>
+                            <select id="cfg_featured" class="si"><option>2</option><option selected>4</option><option>6</option><option>8</option></select></div>
+                        <div class="stoggle"><label class="sl">Show Scrolling Marquee Bar</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_marquee" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Scrolling brand text banner</span></div></div>
+                        <div class="stoggle"><label class="sl">Show WhatsApp Chat Bubble</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_wa_bubble" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Floating WhatsApp on storefront</span></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── DELIVERY ── -->
+            <div id="ss-delivery" class="s-section" style="display:none;">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="panel">
+                        <h3 class="ptitle">🚚 Delivery Fees</h3>
+                        <div class="sf"><label class="sl">Standard Delivery Fee (GH₵)</label><input id="cfg_std_fee" type="number" value="30" class="si"></div>
+                        <div class="sf"><label class="sl">Express Delivery Fee (GH₵)</label><input id="cfg_exp_fee" type="number" value="60" class="si"></div>
+                        <div class="sf"><label class="sl">Free Delivery Threshold (GH₵)</label><input id="cfg_free_thresh" type="number" value="500" class="si"><span style="color:var(--grey);font-size:0.78rem;display:block;margin-top:4px;">Orders above this amount qualify for free delivery</span></div>
+                        <div class="sf"><label class="sl">ETA — Accra Region</label><input id="cfg_eta_accra" type="text" value="1–2 Business Days" class="si"></div>
+                        <div class="sf"><label class="sl">ETA — Other Regions</label><input id="cfg_eta_other" type="text" value="3–5 Business Days" class="si"></div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="ptitle">🏭 Fulfillment</h3>
+                        <div class="sf"><label class="sl">Default Fulfillment Hub</label>
+                            <select id="cfg_hub" class="si"><option selected>Accra Main Warehouse</option><option>Ho Distribution Center</option><option>Kumasi Satellite Hub</option></select></div>
+                        <div class="sf"><label class="sl">Warehouse Address (Accra)</label><input id="cfg_wh_accra" type="text" value="12 Independence Ave, Accra" class="si"></div>
+                        <div class="sf"><label class="sl">Warehouse Address (Ho)</label><input id="cfg_wh_ho" type="text" value="5 Ho Market Road, Volta" class="si"></div>
+                        <div class="stoggle"><label class="sl">Cash on Delivery</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_cod"><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Allow payment at time of delivery</span></div></div>
+                        <div class="stoggle"><label class="sl">In-Store Pickup</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_pickup" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Customer picks up from showroom</span></div></div>
+                        <div class="stoggle"><label class="sl">Show Delivery Tracker on Orders</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_tracker" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Step-by-step delivery progress</span></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ORDERS ── -->
+            <div id="ss-orders" class="s-section" style="display:none;">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="panel">
+                        <h3 class="ptitle">📦 Order Rules</h3>
+                        <div class="sf"><label class="sl">Minimum Order Value (GH₵)</label><input id="cfg_min_order" type="number" value="50" class="si"></div>
+                        <div class="sf"><label class="sl">Maximum Items Per Order</label><input id="cfg_max_items" type="number" value="20" class="si"></div>
+                        <div class="sf"><label class="sl">Auto-Cancel Unpaid Orders After (hrs)</label><input id="cfg_auto_cancel" type="number" value="24" class="si"><span style="color:var(--grey);font-size:0.78rem;display:block;margin-top:4px;">Pending orders cancelled after this window</span></div>
+                        <div class="stoggle"><label class="sl">Customer Can Cancel Their Order</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_allow_cancel" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Only before status = Walk in Sale</span></div></div>
+                        <div class="stoggle"><label class="sl">Auto-Assign Orders to Region Admin</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_auto_assign" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Based on delivery region selection</span></div></div>
+                        <div class="stoggle"><label class="sl">Require Phone for Checkout</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_phone_req" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Phone number mandatory on checkout</span></div></div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="ptitle">🔄 Returns &amp; Refunds</h3>
+                        <div class="sf"><label class="sl">Returns Window (days)</label><input id="cfg_ret_window" type="number" value="7" class="si"></div>
+                        <div class="sf"><label class="sl">Refund Processing Time (days)</label><input id="cfg_ref_days" type="number" value="5" class="si"></div>
+                        <div class="sf"><label class="sl">Refund Method</label>
+                            <select id="cfg_ref_method" class="si"><option selected>Original Payment Method</option><option>Store Credit</option><option>Bank Transfer Only</option></select></div>
+                        <div class="stoggle"><label class="sl">Accept Returns on Sale Items</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_sale_ret"><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Off by default for discounted items</span></div></div>
+                        <div class="stoggle"><label class="sl">Require Photo Proof for Returns</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_ret_photo" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Customer must upload item photo</span></div></div>
+                        <div class="sf"><label class="sl">VAT Rate (%)</label><input id="cfg_vat" type="number" value="15" class="si"></div>
+                        <div class="sf"><label class="sl">Tax Display</label>
+                            <select id="cfg_tax_disp" class="si"><option selected>Inclusive (in price)</option><option>Exclusive (added at checkout)</option><option>Hidden</option></select></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── NOTIFICATIONS ── -->
+            <div id="ss-notifications" class="s-section" style="display:none;">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="panel">
+                        <h3 class="ptitle">🔔 Customer Notifications</h3>
+                        <p style="color:var(--grey);font-size:0.85rem;margin-bottom:18px;">Automated messages sent to customers.</p>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Order Confirmation</div><div class="nsub">Immediately after order placed</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Payment Receipt</div><div class="nsub">After payment verified</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Walk in Sale Update</div><div class="nsub">When status → Walk in Sale</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Delivery Confirmation</div><div class="nsub">When status → Delivered</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Order Cancellation</div><div class="nsub">If order is cancelled</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Refund Processed</div><div class="nsub">When refund is approved</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="ptitle">📣 Admin Alerts</h3>
+                        <p style="color:var(--grey);font-size:0.85rem;margin-bottom:18px;">Internal alerts for store administrators.</p>
+                        <div class="ntoggle"><div><div style="font-weight:600;">New Order Received</div><div class="nsub">Instant alert for every order</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Low Stock Warning</div><div class="nsub">When item stock &lt; threshold</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">New Product Enquiry</div><div class="nsub">Customer submits enquiry form</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Return / Refund Request</div><div class="nsub">Customer requests a return</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Daily Sales Summary</div><div class="nsub">End-of-day revenue email</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span></label></div>
+                        <div class="ntoggle"><div><div style="font-weight:600;">Weekly Analytics Report</div><div class="nsub">Monday morning summary</div></div><label class="tgl"><input type="checkbox"><span class="tgl-track"></span></label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SOCIAL ── -->
+            <div id="ss-social" class="s-section" style="display:none;">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="panel">
+                        <h3 class="ptitle">📲 Social Profiles</h3>
+                        <div class="sf"><label class="sl">📸 Instagram</label><input id="cfg_ig" type="text" placeholder="@limefashion.gh" class="si"></div>
+                        <div class="sf"><label class="sl">📘 Facebook Page</label><input id="cfg_fb" type="text" placeholder="facebook.com/limefashiongh" class="si"></div>
+                        <div class="sf"><label class="sl">🎵 TikTok</label><input id="cfg_tt" type="text" placeholder="@limefashion.gh" class="si"></div>
+                        <div class="sf"><label class="sl">🐦 X (Twitter)</label><input id="cfg_tw" type="text" placeholder="@limefashiongh" class="si"></div>
+                        <div class="sf"><label class="sl">📌 Pinterest</label><input id="cfg_pin" type="text" placeholder="pinterest.com/limefashion" class="si"></div>
+                        <div class="sf"><label class="sl">▶ YouTube</label><input id="cfg_yt" type="text" placeholder="youtube.com/@limefashion" class="si"></div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="ptitle">🔗 Share &amp; Embed</h3>
+                        <div class="stoggle"><label class="sl">Social Share Buttons on Products</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_share_btn" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">WhatsApp &amp; Instagram share links</span></div></div>
+                        <div class="stoggle"><label class="sl">WhatsApp Chat Widget</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_wa_widget" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Floating button on storefront</span></div></div>
+                        <div class="sf"><label class="sl">WhatsApp Greeting Message</label><input id="cfg_wa_msg" type="text" value="Hello! I have a question about your products." class="si"></div>
+                        <div class="stoggle"><label class="sl">Instagram Feed Section</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_ig_feed"><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Requires Instagram API setup</span></div></div>
+                        <div class="sf"><label class="sl">OG / Link Preview Image URL</label><input id="cfg_og_img" type="url" placeholder="https://limefashion.gh/og-banner.jpg" class="si"></div>
+                        <div class="sf"><label class="sl">Referral Discount Code</label><input id="cfg_referral" type="text" placeholder="e.g. SHARE10 (10% off)" class="si"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SEO ── -->
+            <div id="ss-seo" class="s-section" style="display:none;">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="panel">
+                        <h3 class="ptitle">📈 SEO Metadata</h3>
+                        <div class="sf"><label class="sl">Page Title (Browser Tab)</label><input id="cfg_seo_title" type="text" value="Lime Fashion — Style That Speaks" class="si"></div>
+                        <div class="sf"><label class="sl">Meta Description</label><textarea id="cfg_seo_desc" class="si" rows="3" style="resize:vertical;">Shop the latest fashion for men, women and children at Lime Fashion Ghana. Premium quality, fast delivery across all regions.</textarea></div>
+                        <div class="sf"><label class="sl">Meta Keywords</label><input id="cfg_seo_kw" type="text" value="fashion ghana, lime fashion, clothing accra, dresses" class="si"></div>
+                        <div class="sf"><label class="sl">Canonical URL</label><input id="cfg_canonical" type="url" placeholder="https://limefashion.gh" class="si"></div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="ptitle">🔍 Tracking &amp; Indexing</h3>
+                        <div class="sf"><label class="sl">Google Analytics ID</label><input id="cfg_ga_id" type="text" value="G-XXXXXXXXXX" class="si"></div>
+                        <div class="sf"><label class="sl">Google Search Console Code</label><input id="cfg_gsc" type="text" placeholder="Meta verification code" class="si"></div>
+                        <div class="sf"><label class="sl">Facebook Pixel ID</label><input id="cfg_fb_px" type="text" value="123456789012345" class="si"></div>
+                        <div class="sf"><label class="sl">TikTok Pixel ID</label><input id="cfg_tt_px" type="text" placeholder="C8A1B2C3D4E5..." class="si"></div>
+                        <div class="stoggle"><label class="sl">Allow Search Engine Indexing</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_indexing" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Enable robots.txt indexing</span></div></div>
+                        <div class="stoggle"><label class="sl">Structured Data (Schema.org)</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_schema" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Product rich results in Google</span></div></div>
+                        <div class="stoggle"><label class="sl">Auto Sitemap Generation</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_sitemap" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Updates on product changes</span></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SECURITY ── -->
+            <div id="ss-security" class="s-section" style="display:none;">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="panel">
+                        <h3 class="ptitle">🔒 Admin Access</h3>
+                        <div class="sf"><label class="sl">Accra Admin PIN</label>
+                            <div style="position:relative;"><input id="cfg_accra_pin" type="password" placeholder="Set new PIN" class="si" maxlength="6"><button onclick="var i=this.previousElementSibling;i.type=i.type==='password'?'text':'password'" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--grey);cursor:pointer;font-size:1rem;">👁</button></div></div>
+                        <div class="sf"><label class="sl">Ho Admin PIN</label>
+                            <div style="position:relative;"><input id="cfg_ho_pin" type="password" placeholder="Set new PIN" class="si" maxlength="6"><button onclick="var i=this.previousElementSibling;i.type=i.type==='password'?'text':'password'" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--grey);cursor:pointer;font-size:1rem;">👁</button></div></div>
+                        <div class="sf"><label class="sl">Session Timeout (minutes)</label>
+                            <select id="cfg_session" class="si"><option>30</option><option selected>60</option><option>120</option><option>Never</option></select></div>
+                        <div class="stoggle"><label class="sl">Require Login on Admin Load</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_req_login" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Show login overlay on open</span></div></div>
+                        <div class="stoggle"><label class="sl">Two-Factor Auth (SMS)</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_2fa"><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Requires SMS provider setup</span></div></div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="ptitle">🛡 Data &amp; Privacy</h3>
+                        <div class="stoggle"><label class="sl">Cookie Consent Banner</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_cookies" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">GDPR privacy compliance banner</span></div></div>
+                        <div class="stoggle"><label class="sl">Admin Activity Log</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_actlog" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Track all admin actions</span></div></div>
+                        <div class="stoggle"><label class="sl">Encrypt Customer Data</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_encrypt" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">AES-256 localStorage encryption</span></div></div>
+                        <div class="sf" style="margin-top:8px;"><label class="sl">Auto Data Backup</label>
+                            <select id="cfg_backup" class="si"><option>Every hour</option><option selected>Daily</option><option>Weekly</option><option>Manual only</option></select></div>
+                        <button onclick="exportStoreData()" style="width:100%;margin-top:16px;background:var(--dark3);color:white;border:1px solid var(--border);border-radius:var(--radius-pill);padding:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:var(--transition);" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--border)'">📥 Export Store Data (JSON)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── PAYMENTS ── -->
+            <div id="ss-payments" class="s-section" style="display:none;">
+                <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="panel">
+                        <h3 class="ptitle">📱 Mobile Money</h3>
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><div style="width:36px;height:36px;background:#ffcc00;border-radius:50%;display:flex;align-items:center;justify-content:center;color:black;font-weight:800;">M</div><h4 style="font-size:1rem;font-weight:600;">MoMo Details</h4></div>
+                        <div class="sf"><label class="sl">Account Name</label><input id="cfg_momo_name" type="text" value="Lime Fashion Ghana" class="si"></div>
+                        <div class="sf"><label class="sl">Receiving Number</label><input id="cfg_momo_num" type="tel" value="024 000 0000" class="si"></div>
+                        <div class="sf"><label class="sl">Default Network</label>
+                            <select id="cfg_momo_net" class="si"><option selected>MTN Mobile Money</option><option>Telecel Cash</option><option>AT Money</option></select></div>
+                        <div class="stoggle"><label class="sl">Accept All Networks</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_all_momo" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">MTN, Telecel &amp; AT active</span></div></div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="ptitle">🏦 Bank Transfer</h3>
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><div style="width:36px;height:36px;background:var(--dark4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🏦</div><h4 style="font-size:1rem;font-weight:600;">Bank Details</h4></div>
+                        <div class="sf"><label class="sl">Bank Name</label><input id="cfg_bank_name" type="text" value="Ecobank Ghana" class="si"></div>
+                        <div class="sf"><label class="sl">Account Number</label><input id="cfg_bank_acct" type="text" value="1234567890123" class="si"></div>
+                        <div class="sf"><label class="sl">Account Name</label><input id="cfg_bank_acct_name" type="text" value="Lime Fashion Ltd" class="si"></div>
+                        <div class="sf"><label class="sl">SWIFT / Branch Code</label><input id="cfg_bank_swift" type="text" value="ECOCGHAC" class="si"></div>
+                        <div class="stoggle"><label class="sl">Show Bank Transfer at Checkout</label>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;"><label class="tgl"><input type="checkbox" id="cfg_bank_on" checked><span class="tgl-track"></span></label><span style="color:var(--grey2);font-size:0.88rem;">Display bank option in checkout</span></div></div>
+                    </div>
+                </div>
+                <!-- Paystack / card gateway -->
+                <div class="panel" style="margin-top:24px;">
+                    <h3 class="ptitle">⚡ Card Gateway (Paystack)</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;align-items:end;">
+                        <div><label class="sl">Public Key</label><input id="cfg_ps_pub" type="text" placeholder="pk_live_..." class="si"></div>
+                        <div><label class="sl">Secret Key</label><input id="cfg_ps_sec" type="password" placeholder="sk_live_..." class="si"></div>
+                        <div><label class="sl">Environment</label><select id="cfg_ps_env" class="si"><option selected>Live</option><option>Test / Sandbox</option></select></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── DANGER ── -->
+            <div id="ss-danger" class="s-section" style="display:none;">
+                <div class="panel" style="border-color:rgba(239,68,68,0.4);">
+                    <h3 style="font-family:var(--font-display);font-size:1.5rem;margin-bottom:8px;color:var(--error);">⚠ Danger Zone</h3>
+                    <p class="grey" style="margin-bottom:28px;">These actions are permanent and cannot be reversed. Proceed with extreme caution.</p>
+                    <div style="display:flex;flex-direction:column;gap:14px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:12px;">
+                            <div><div style="font-weight:700;margin-bottom:3px;">Clear All Orders</div><div style="color:var(--grey);font-size:0.83rem;">Permanently deletes all order history.</div></div>
+                            <button onclick="if(confirm('Delete ALL orders? This cannot be undone.')){localStorage.removeItem('lime_live_orders');renderOrders();showStgToast('All orders cleared.');}" class="dz-btn">🗑 Clear Orders</button>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:12px;">
+                            <div><div style="font-weight:700;margin-bottom:3px;">Reset Product Catalog</div><div style="color:var(--grey);font-size:0.83rem;">Resets all products to the original 8 default items.</div></div>
+                            <button onclick="if(confirm('Reset products to defaults?')){localStorage.removeItem('lime_products');location.reload();}" class="dz-btn">↩ Reset Products</button>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:12px;">
+                            <div><div style="font-weight:700;margin-bottom:3px;">Reset Active Template</div><div style="color:var(--grey);font-size:0.83rem;">Clears saved template — reverts to Midnight Luxe default.</div></div>
+                            <button onclick="if(confirm('Reset to default template?')){localStorage.removeItem('lime_active_template');showStgToast('Template reset to default.');}" class="dz-btn">🎨 Reset Theme</button>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:20px;background:rgba(239,68,68,0.08);border:2px solid rgba(239,68,68,0.4);border-radius:12px;">
+                            <div><div style="font-weight:700;margin-bottom:3px;color:var(--error);">Delete All Store Data</div><div style="color:var(--grey);font-size:0.83rem;">Wipes everything — orders, products, templates, settings.</div></div>
+                            <button onclick="if(confirm('DELETE ALL DATA?\nThis will wipe your entire store.')&&prompt('Type YES to confirm:') === 'YES'){localStorage.clear();location.reload();}" style="background:var(--error);color:white;border:none;border-radius:var(--radius-pill);padding:10px 20px;font-weight:700;cursor:pointer;font-family:var(--font-body);white-space:nowrap;transition:var(--transition);" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">💀 Delete Everything</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        </div>0.1)'">Delete Store Data</button>
+            </div>
+        </div>
+        </div>
+
+        
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ADD ADMIN MODAL
+════════════════════════════════════════ -->
+<div id="addAdminModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Admin User</h3>
+      <button class="modal-close" id="closeAddAdminModal">✕</button>
+    </div>
+    <form id="addAdminForm" novalidate>
+      <div class="modal-body">
+        <div class="field-row">
+          <div class="field-group">
+            <label>Full Name</label>
+            <input id="newFullName" type="text" placeholder="e.g. Kofi Mensah">
+          </div>
+          <div class="field-group">
+            <label>Email</label>
+            <input id="newEmail" type="email" placeholder="admin@example.com">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Username <span class="req">*</span></label>
+            <input id="newUsername" type="text" placeholder="e.g. ho_admin1" required>
+          </div>
+          <div class="field-group">
+            <label>Account <span class="req">*</span></label>
+            <select id="newAccount" required>
+              <option value="">Select region…</option>
+              <option value="ho">Ho</option>
+              <option value="accra">Accra</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Password <span class="req">*</span></label>
+            <input id="newPassword" type="password" placeholder="Min. 6 characters" required>
+          </div>
+          <div class="field-group">
+            <label>Confirm Password <span class="req">*</span></label>
+            <input id="newPasswordConfirm" type="password" placeholder="Re-enter password" required>
+          </div>
+        </div>
+        <div id="addAdminError" class="login-error hidden"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cancelAddAdmin" class="btn-secondary">Cancel</button>
+        <button type="submit" class="btn-primary">Create Admin</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div id="resetPassModal" class="modal-backdrop hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>Reset Password</h3>
+      <button class="modal-close" id="closeResetModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="resetUserId">
+      <div class="field-group">
+        <label>New Password</label>
+        <input id="resetPassword" type="password" placeholder="Min. 6 characters">
+      </div>
+      <div id="resetError" class="login-error hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="cancelResetModal">Cancel</button>
+      <button class="btn-primary" id="confirmResetBtn">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<script src="superadmin.js?v=2"></script>
+</body>
+</html>
