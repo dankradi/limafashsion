@@ -932,17 +932,6 @@ def serve_files(path):
     return send_from_directory(ROOT_DIR, path)
     return send_from_directory(os.path.join(ROOT_DIR, "admin"), path)
 
-@app.route("/superadmin")
-@app.route("/superadmin/")
-def serve_superadmin():
-    return send_from_directory(os.path.join(ROOT_DIR, "super_admin"), "superadminlima.html")
-
-@app.route("/superadmin/<path:path>")
-def serve_superadmin_files(path):
-    return send_from_directory(os.path.join(ROOT_DIR, "super_admin"), path)
-
-@app.route("/<path:path>")
-def serve_static(path):
     if path.startswith("backend") or path.startswith("."):
         abort(404)
     if os.path.exists(os.path.join(ROOT_DIR, path)):
