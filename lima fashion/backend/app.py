@@ -921,21 +921,41 @@ def service_unavailable(e):
 # ─────────────────────────────────────────────────────
 #  Static File Serving Routes
 # ─────────────────────────────────────────────────────
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+# -----------------------------------------------------
+# Static File Serving
+# -----------------------------------------------------
+
+ROOT_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "frontend")
+)
+
 @app.route("/")
 def serve_home():
     return send_from_directory(ROOT_DIR, "index.html")
 
 
-@app.route("/<path:path>")
-def serve_files(path):
-    return send_from_directory(ROOT_DIR, path)
-    return send_from_directory(os.path.join(ROOT_DIR, "admin"), path)
+@app.route("/admin")
+@app.route("/admin/")
+def serve_admin():
+    return send_from_directory(
+        os.path.join(ROOT_DIR, "admin"),
+        "yourlimadash.html"
+    )
 
-    if path.startswith("backend") or path.startswith("."):
-        abort(404)
+
+@app.route("/admin/<path:path>")
+def serve_admin_files(path):
+    return send_from_directory(
+        os.path.join(ROOT_DIR, "admin"),
+        path
+    )
+
+
+@app.route("/<path:path>")
+def serve_static(path):
     if os.path.exists(os.path.join(ROOT_DIR, path)):
         return send_from_directory(ROOT_DIR, path)
+
     abort(404)
 
 
