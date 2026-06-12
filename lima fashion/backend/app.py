@@ -921,19 +921,15 @@ def service_unavailable(e):
 # ─────────────────────────────────────────────────────
 #  Static File Serving Routes
 # ─────────────────────────────────────────────────────
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
-
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 @app.route("/")
 def serve_home():
     return send_from_directory(ROOT_DIR, "index.html")
 
-@app.route("/admin")
-@app.route("/admin/")
-def serve_admin():
-    return send_from_directory(os.path.join(ROOT_DIR, "admin"), "yourlimadash.html")
 
-@app.route("/admin/<path:path>")
-def serve_admin_files(path):
+@app.route("/<path:path>")
+def serve_files(path):
+    return send_from_directory(ROOT_DIR, path)
     return send_from_directory(os.path.join(ROOT_DIR, "admin"), path)
 
 @app.route("/superadmin")
