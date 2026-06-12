@@ -114,7 +114,7 @@ loginForm.addEventListener("submit", async (e) => {
         region:    data.account === "ho" ? "Ho" : "Accra",
       };
       sessionStorage.setItem("admin_session", JSON.stringify(session));
-      window.location.href = "/admin";
+      window.location.href = "/admin/yourlimadash.html";
     }
   } catch (err) {
     if (err.message === "Failed to fetch") {
