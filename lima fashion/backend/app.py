@@ -921,24 +921,22 @@ def service_unavailable(e):
 # ─────────────────────────────────────────────────────
 #  Static File Serving Routes
 # ─────────────────────────────────────────────────────
-# -----------------------------------------------------
-# Static File Serving
-# -----------------------------------------------------
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 
-ROOT_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "frontend")
+FRONTEND_DIR = os.path.abspath(
+    os.path.join(BACKEND_DIR, "..", "frontend")
 )
 
 @app.route("/")
-def serve_home():
-    return send_from_directory(ROOT_DIR, "index.html")
+def serve_superadmin():
+    return send_from_directory(BACKEND_DIR, "index.html")
 
 
 @app.route("/admin")
 @app.route("/admin/")
 def serve_admin():
     return send_from_directory(
-        os.path.join(ROOT_DIR, "admin"),
+        os.path.join(FRONTEND_DIR, "admin"),
         "yourlimadash.html"
     )
 
@@ -946,18 +944,25 @@ def serve_admin():
 @app.route("/admin/<path:path>")
 def serve_admin_files(path):
     return send_from_directory(
-        os.path.join(ROOT_DIR, "admin"),
+        os.path.join(FRONTEND_DIR, "admin"),
         path
     )
 
 
-@app.route("/<path:path>")
-def serve_static(path):
-    if os.path.exists(os.path.join(ROOT_DIR, path)):
-        return send_from_directory(ROOT_DIR, path)
+@app.route("/shop")
+def serve_shop():
+    return send_from_directory(
+        FRONTEND_DIR,
+        "index.html"
+    )
 
-    abort(404)
 
+@app.route("/images/<path:path>")
+def serve_images(path):
+    return send_from_directory(
+        os.path.join(FRONTEND_DIR, "images"),
+        path
+    )
 
 # ─────────────────────────────────────────────────────
 #  Entry Point
