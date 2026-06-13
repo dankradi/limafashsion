@@ -930,6 +930,20 @@ FRONTEND_DIR = os.path.abspath(
 @app.route("/")
 def serve_superadmin():
     return send_from_directory(BACKEND_DIR, "index.html")
+@app.route("/superadmin.css")
+def serve_superadmin_css():
+    return send_from_directory(
+        BACKEND_DIR,
+        "superadmin.css"
+    )
+
+
+@app.route("/superadmin.js")
+def serve_superadmin_js():
+    return send_from_directory(
+        BACKEND_DIR,
+        "superadmin.js"
+    )
 
 
 @app.route("/admin")
