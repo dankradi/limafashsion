@@ -1,4 +1,4 @@
-const API_URL = "https://limafashion.onrender.com";
+const API_URL = "https://limafashsion.onrender.com";
 
 let products = [];
 
