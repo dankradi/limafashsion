@@ -1,13 +1,27 @@
-const products = [
-    { id: 1, name: "Floral Maxi Dress", price: 280, emoji: "👗", cat: "WOMEN · DRESSES", badge: "NEW" },
-    { id: 2, name: "Strappy Heels", price: 220, emoji: "👠", cat: "WOMEN · SHOES", badge: "HOT" },
-    { id: 3, name: "Oxford Dress Shirt", price: 190, emoji: "👔", cat: "MEN · TOPS", badge: "NEW" },
-    { id: 4, name: "Leather Sneakers", price: 350, emoji: "👟", cat: "MEN · SHOES", badge: "HOT" },
-    { id: 5, name: "Knit Sweater", price: 150, emoji: "🧶", cat: "WOMEN · TOPS", badge: "" },
-    { id: 6, name: "Denim Jacket", price: 260, emoji: "🧥", cat: "MEN · OUTERWEAR", badge: "" },
-    { id: 7, name: "Kids T-Shirt", price: 80, emoji: "👕", cat: "CHILDREN · TOPS", badge: "" },
-    { id: 8, name: "School Backpack", price: 120, emoji: "🎒", cat: "CHILDREN · ACCESSORIES", badge: "NEW" }
-];
+const API_URL = "https://limafashion.onrender.com";
+
+let products = [];
+
+async function loadProducts() {
+    try {
+        const response = await fetch(`${API_URL}/api/products`);
+
+if (!response.ok) {
+    throw new Error("Failed to fetch products");
+}
+
+products = await response.json();
+      
+
+console.log("Products loaded:", products);
+
+renderProducts('featuredGrid', products.slice(0, 4));
+renderProducts('shopGrid', products);
+
+    } catch (error) {
+        console.error("Failed to load products:", error);
+    }
+}
 
 let cart = [];
 
@@ -42,7 +56,10 @@ function updateCartUI() {
         itemsTotal += item.qty;
         html += `
           <div class="cart-item">
-            <div class="cart-item-thumb">${item.emoji}</div>
+           <div class="cart-item-thumb">
+    <img src="${item.images && item.images.length ? item.images[0] : ''}"
+         style="width:50px;height:50px;object-fit:cover;">
+</div> 
             <div class="cart-item-info">
               <div class="cart-item-name">${item.name}</div>
               <div style="font-size: 0.85rem; color: #888; margin-bottom: 6px;">Qty: ${item.qty}</div>
@@ -65,9 +82,12 @@ function renderProducts(gridId, prods) {
         <div class="product-card-top" style="justify-content: flex-end;">
             ${p.badge ? `<span class="badge-${p.badge.toLowerCase()}">${p.badge}</span>` : '<div></div>'}
         </div>
-        <div class="product-img">${p.emoji}</div>
+        <div class="product-img">
+    <img src="${p.images && p.images.length ? p.images[0] : ''}"
+         style="width:100%;height:100%;object-fit:cover;">
+</div>
         <div class="product-info">
-            <div class="product-cat">${p.cat}</div>
+            <div class="product-cat">${p.category}</div>
             <div class="product-name">${p.name}</div>
             <div class="product-price-row">
                 <span class="product-price">GH₵ ${p.price}</span>
@@ -96,8 +116,10 @@ function showCategory(catToken) {
     let tag = "ALL PRODUCTS";
     
     if (catToken !== 'ALL') {
-        filtered = products.filter(p => p.cat.includes(catToken));
-    }
+    filtered = products.filter(p =>
+        p.category && p.category.toUpperCase().includes(catToken)
+    );
+}
 
     if (catToken === 'WOMEN') { title = "Women's Collection"; tag = "SHOP WOMEN"; }
     if (catToken === 'MEN') { title = "Men's Collection"; tag = "SHOP MEN"; }
@@ -119,6 +141,5 @@ function showCategory(catToken) {
 }
 
 window.onload = () => {
-    // Feature grid on home gets only 4 featured products
-    renderProducts('featuredGrid', products.slice(0, 4));
+    loadProducts();
 };
