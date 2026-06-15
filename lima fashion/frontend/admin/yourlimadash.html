@@ -961,23 +961,31 @@
             const overlay = document.getElementById('adminLoginOverlay');
             if(overlay) overlay.style.display = 'flex';
         }
+        
+        const API = "https://limafashsion.onrender.com/api";
 
-        async function getFilteredOrders() {
+async function getFilteredOrders() {
 
-    const response = await fetch(
-        `${API}/orders?region=${currentAdmin}`
-    );
+    if (!currentAdmin) {
+        return [];
+    }
 
-    return await response.json();
-}
-            if (!currentAdmin) return [];
-            
-            return allOrders.filter(order => {
-                const isHoRegion = HO_REGIONS.includes(order.region);
-                if (currentAdmin === 'Ho') return isHoRegion;
-                else return !isHoRegion; // Accra handles everything else
-            });
+    try {
+        const response = await fetch(
+            `${API}/orders?region=${currentAdmin}`
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to load orders");
         }
+
+        return await response.json();
+
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
+}
 
         async function renderOrders() {
             const myOrders = await getFilteredOrders();
