@@ -962,8 +962,14 @@
             if(overlay) overlay.style.display = 'flex';
         }
 
-        function getFilteredOrders() {
-            let allOrders = JSON.parse(localStorage.getItem('lime_live_orders') || '[]');
+        async function getFilteredOrders() {
+
+    const response = await fetch(
+        `${API}/orders?region=${currentAdmin}`
+    );
+
+    return await response.json();
+}
             if (!currentAdmin) return [];
             
             return allOrders.filter(order => {
