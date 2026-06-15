@@ -979,8 +979,8 @@
             });
         }
 
-        function renderOrders() {
-            const myOrders = getFilteredOrders();
+        async function renderOrders() {
+            const myOrders = await getFilteredOrders();
             
             // 1. Update stats
             const orderCountNode = document.getElementById('dashOrderCount');
