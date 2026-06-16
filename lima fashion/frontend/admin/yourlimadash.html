@@ -994,11 +994,14 @@ async function getFilteredOrders() {
             // 1. Update stats
             const orderCountNode = document.getElementById('dashOrderCount');
             if (orderCountNode) orderCountNode.innerText = myOrders.length;
-            
             let revenue = 0;
-            myOrders.forEach(o => revenue += o.total);
+
+myOrders.forEach(o => {
+    revenue += Number(o.total) || 0;
+});
+            
             const divRev = document.getElementById('dashRev');
-            if (divRev) divRev.innerText = 'GH₵ ' + revenue.toFixed(2);
+            if (divRev) divRev.innerText = 'GH₵ ' + Number(revenue).toFixed(2);
             
             // 2. Render Recent Orders (first 4) into Dashboard
             const dashTable = document.getElementById('dashRecentOrders');
@@ -1010,7 +1013,7 @@ async function getFilteredOrders() {
                         <tr>
                             <td style="font-weight: 500;">${o.id}</td>
                             <td><span class="status-pill status-${o.status.toLowerCase()}">${o.status}</span></td>
-                            <td style="font-weight: 600;">GH₵ ${o.total.toFixed(2)}</td>
+                            <td style="font-weight: 600;">GH₵ ${Number(o.total).toFixed(2)}
                         </tr>
                     `).join('');
                 }
