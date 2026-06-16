@@ -742,7 +742,7 @@
 
 async function loadAdminProducts() {
     try {
-        const res = await fetch('https://limafashion.onrender.com/api/products');
+        const res = await fetch(API_BASE + '/products');
 
         if (!res.ok) {
             throw new Error('Failed to load products');
