@@ -1342,7 +1342,11 @@ function saveAllSettings() {
     localStorage.setItem('lime_store_settings', JSON.stringify(settings));
 
     // Also try to persist to backend
-    apiFetch('POST', '/settings', { store_settings: settings }).catch(err => {
+   await apiFetch('POST', '/settings', {
+    store_settings: settings
+});
+
+await loadSavedSettings();.catch(err => {
         console.warn('Could not sync settings to DB:', err);
     });
 
