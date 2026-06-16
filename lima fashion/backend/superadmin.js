@@ -1346,9 +1346,11 @@ async function saveAllSettings() {
     store_settings: settings
 });
 
-await loadSavedSettings();.catch(err => {
-        console.warn('Could not sync settings to DB:', err);
-    });
+try {
+    await loadSavedSettings();
+} catch (err) {
+    console.warn('Could not sync settings to DB:', err);
+}
 
     // Show a premium toast notification
     const toast = document.createElement('div');
