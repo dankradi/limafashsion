@@ -1032,7 +1032,7 @@ myOrders.forEach(o => {
                             <td style="font-weight: 500;">${o.id}</td>
                             <td>${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
                             <td style="color:var(--grey2);">${o.region}</td>
-                            <td style="color:var(--lime); font-weight:700;">GH₵ ${o.total.toFixed(2)}</td>
+                            <td style="color:var(--lime); font-weight:700;">GH₵ ${Number(o.total).toFixed(2)}</td>
                             <td><span class="status-pill status-${o.status.toLowerCase().replace(' ', '-')}">${o.status}</span></td>
                             <td>
                                 <button style="background:var(--dark3); color:white; border:1px solid var(--border); padding:6px 12px; border-radius:6px; cursor:pointer;" onclick="openOrderModal('${o.id}')">View</button>
@@ -1078,12 +1078,13 @@ myOrders.forEach(o => {
                         <span style="font-size:0.8rem; color:var(--grey);">Qty: ${item.qty}</span>
                     </div>
                     <div style="font-weight:600; padding-left:15px;">
-                        GH₵ ${(item.price * item.qty).toFixed(2)}
+                        GH₵ ${Number(item.price * item.qty).toFixed(2)}
                     </div>
                 </div>
             `).join('');
             
-            document.getElementById('modalOrderTotal').innerText = 'GH₵ ' + order.total.toFixed(2);
+            document.getElementById('modalOrderTotal').innerText =
+    'GH₵ ' + Number(order.total).toFixed(2);
 
             // Customer rendering
             if (order.customer) {
