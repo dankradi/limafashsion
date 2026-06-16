@@ -1456,12 +1456,11 @@
         // =============================================
         //  EXTENDED THEMES DATA
         // =============================================
-        const API = "https://limafashsion.onrender.com/api";
+       const API = "https://limafashsion.onrender.com/api";
 
         // =============================================
-        //  STORE SETTINGS ENGINE
-        //  Reads lime_store_settings from localStorage
-        //  and applies every control to the mainpage
+        //  Reads settings from database
+        // via /api/settings
         // =============================================
         const GOOGLE_FONTS_MAP = {
             'Outfit':             'Outfit:wght@300;400;500;600;700',
@@ -1487,11 +1486,17 @@
             document.head.appendChild(link);
         }
 
-        function applyStoreSettings() {
+       async function applyStoreSettings() {
             try {
-                const raw = localStorage.getItem('lime_store_settings');
-                if (!raw) return;
-                const s = JSON.parse(raw);
+                const res = await fetch(API + '/settings');
+
+if (!res.ok) return;
+
+const dbSettings = await res.json();
+
+if (!dbSettings.store_settings) return;
+
+const s = dbSettings.store_settings;
                 const root = document.documentElement;
 
                 // ── Brand Colors ──────────────────────────────
@@ -1950,11 +1955,11 @@
         }
 
         // Apply on page load
-        window.onload = () => {
+        window.onload = async () => {
             // We now fetch products via API directly
             fetchProducts();
             applyTemplate(false);
-            applyStoreSettings();          // Apply admin store settings
+           await applyStoreSettings();         // Apply admin store settings
             fetchActiveTemplate();          // Query backend settings DB for active storefront template
         };
 
