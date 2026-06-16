@@ -738,24 +738,25 @@
                 overlay.classList.add('open');
             }
         }
+        let adminProducts = [];
 
-        // 3. Admin Products Logic (LocalStorage sync)
-        const defaultProducts = [
-            { id: 1, name: "Floral Maxi Dress", price: 280, emoji: "👗", cat: "WOMEN · DRESSES", badge: "NEW" },
-            { id: 2, name: "Strappy Heels", price: 220, emoji: "👠", cat: "WOMEN · SHOES", badge: "HOT" },
-            { id: 3, name: "Oxford Dress Shirt", price: 190, emoji: "👔", cat: "MEN · TOPS", badge: "NEW" },
-            { id: 4, name: "Leather Sneakers", price: 350, emoji: "👟", cat: "MEN · SHOES", badge: "HOT" },
-            { id: 5, name: "Knit Sweater", price: 150, emoji: "🧶", cat: "WOMEN · TOPS", badge: "" },
-            { id: 6, name: "Denim Jacket", price: 260, emoji: "🧥", cat: "MEN · OUTERWEAR", badge: "" },
-            { id: 7, name: "Kids T-Shirt", price: 80, emoji: "👕", cat: "CHILDREN · TOPS", badge: "" },
-            { id: 8, name: "School Backpack", price: 120, emoji: "🎒", cat: "CHILDREN · ACCESSORIES", badge: "NEW" }
-        ];
+async function loadAdminProducts() {
+    try {
+        const res = await fetch('https://limafashion.onrender.com/api/products');
 
-        let adminProducts = JSON.parse(localStorage.getItem('lime_products'));
-        if (!adminProducts) {
-            adminProducts = defaultProducts;
-            localStorage.setItem('lime_products', JSON.stringify(adminProducts));
+        if (!res.ok) {
+            throw new Error('Failed to load products');
         }
+
+        adminProducts = await res.json();
+
+        renderAdminProducts();
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+        
 
         function renderAdminProducts() {
             const tbody = document.getElementById('adminProductsTable');
