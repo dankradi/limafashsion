@@ -1656,8 +1656,19 @@ async function getFilteredOrders() {
                     full_name: data.full_name,
                     region:    data.account === "ho" ? "Ho" : "Accra",
                 };
-                sessionStorage.setItem("admin_session", JSON.stringify(session));
-                applyAdminSession(session);
+               sessionStorage.setItem('admin_session', JSON.stringify(session));
+
+sessionStorage.setItem(
+    'lime_admin_role',
+    session.region
+);
+
+currentAdmin = session.region;
+
+applyAdminSession(session);
+
+renderOrders();
+fetchAssignedInventory(); 
 
             } catch (err) {
                 errEl.textContent   = err.message;
