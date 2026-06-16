@@ -1165,11 +1165,13 @@ function gv(id) { const el = document.getElementById(id); return el ? el.value :
 function gc(id) { const el = document.getElementById(id); return el ? el.checked : false; }
 
 // ─── Load saved settings into the form fields ───
-function loadSavedSettings() {
+async function loadSavedSettings() {
     try {
-        const raw = localStorage.getItem('lime_store_settings');
-        if (!raw) return;
-        const s = JSON.parse(raw);
+        const res = await apiFetch('GET', '/settings');
+
+      if (!res.store_settings) return;
+
+        const s = res.store_settings;
 
         // General
         const setVal = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
