@@ -1260,7 +1260,7 @@ async function loadSavedSettings() {
 }
 
 // ─── Collect every setting and persist ───
-function saveAllSettings() {
+async function saveAllSettings() {
     const settings = {
         // General
         store_name:    gv('cfg_store_name'),
