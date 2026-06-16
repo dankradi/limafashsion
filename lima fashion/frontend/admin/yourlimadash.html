@@ -887,6 +887,7 @@
 
         // --- ADMIN REGION LOGIC ---
         let currentAdmin = sessionStorage.getItem('lime_admin_role') || null;
+        console.log("Current Admin:", currentAdmin);
         
         const HO_REGIONS = ['Upper East', 'North East', 'Northern', 'Oti', 'Volta', 'Upper West'];
 
@@ -1651,12 +1652,16 @@ async function getFilteredOrders() {
                 }
 
                 const session = {
-                    username:  data.username,
-                    account:   data.account,
-                    full_name: data.full_name,
-                    region:    data.account === "ho" ? "Ho" : "Accra",
-                };
-               sessionStorage.setItem('admin_session', JSON.stringify(session));
+    username: data.username,
+    account: data.account,
+    full_name: data.full_name,
+    region: data.account === 'ho' ? 'Ho' : 'Accra',
+};
+
+sessionStorage.setItem('admin_session', JSON.stringify(session));
+sessionStorage.setItem('lime_admin_role', session.region);
+
+applyAdminSession(session);
 
 sessionStorage.setItem(
     'lime_admin_role',
