@@ -901,7 +901,7 @@ async function loadAdminProducts() {
                 return;
             }
             try {
-                const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.origin === "null" || window.location.protocol === "file:") ? "http://localhost:5000/api" : window.location.origin + "/api";
+                const API = 'https://limafashiongh.onrender.com/api';
                 const res = await fetch(API + "/products");
                 if (!res.ok) throw new Error("Failed to fetch");
                 const products = await res.json();
