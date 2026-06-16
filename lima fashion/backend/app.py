@@ -399,8 +399,19 @@ def get_customers():
 def get_settings():
     rows = query('SELECT "key", "value" FROM settings')
     # Return as flat object { key: value, ... }
-    result = {row["key"]: row["value"] for row in rows}
-    return jsonify(result)
+result = {}
+
+for row in rows:
+    value = row["value"]
+
+    try:
+        value = json.loads(value)
+    except:
+        pass
+
+    result[row["key"]] = value
+
+return jsonify(result)
 
 
 @app.route("/api/settings", methods=["POST"])
