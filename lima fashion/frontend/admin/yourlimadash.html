@@ -887,6 +887,7 @@
 
         // --- ADMIN REGION LOGIC ---
         let currentAdmin = sessionStorage.getItem('lime_admin_role') || null;
+        let currentOrders = [];
         console.log("Current Admin:", currentAdmin);
         
         const HO_REGIONS = ['Upper East', 'North East', 'Northern', 'Oti', 'Volta', 'Upper West'];
@@ -990,6 +991,7 @@ async function getFilteredOrders() {
 
         async function renderOrders() {
             const myOrders = await getFilteredOrders();
+currentOrders = myOrders;
             
             // 1. Update stats
             const orderCountNode = document.getElementById('dashOrderCount');
@@ -1056,8 +1058,7 @@ myOrders.forEach(o => {
 
         function openOrderModal(orderId) {
             currentViewOrderId = orderId;
-            let allOrders = JSON.parse(localStorage.getItem('lime_live_orders') || '[]');
-            let order = allOrders.find(o => o.id === orderId);
+            let order = currentOrders.find(o => o.id === orderId);
             if(!order) return alert("Order not found!");
 
             document.getElementById('modalOrderId').innerText = order.id;
