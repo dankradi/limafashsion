@@ -920,9 +920,13 @@ boot();
         }
 
         // Close modal on backdrop click
-        document.getElementById('pluginConfigModal').addEventListener('click', function(e) {
-            if(e.target === this) closePluginConfig();
-        });
+const pluginModal = document.getElementById('pluginConfigModal');
+
+if (pluginModal) {
+    pluginModal.addEventListener('click', function(e) {           
+      if(e.target === this) closePluginConfig();
+      });
+      }
 
         // =============================================
         //  TEMPLATES DATA & LOGIC
