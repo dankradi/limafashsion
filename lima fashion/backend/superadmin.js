@@ -525,7 +525,10 @@ boot();
                     <td>${p.stock_accra || 0}</td>
                     <td>${p.badge ? `<span class="diff-up">${p.badge}</span>` : '—'}</td>
                     <td>
-                        <button style="background:transparent; color:var(--error); border:1px solid var(--error); padding:6px 12px; border-radius:6px; cursor:pointer; font-weight: 600;" onclick="deleteProduct(${p.id})">Delete</button>
+                        <div style="display:flex; gap:8px;">
+                            <button style="background:transparent; color:var(--lime); border:1px solid var(--lime); padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:600;" onclick="openEditProduct(${p.id})">Edit</button>
+                            <button style="background:transparent; color:var(--error); border:1px solid var(--error); padding:6px 12px; border-radius:6px; cursor:pointer; font-weight: 600;" onclick="deleteProduct(${p.id})">Delete</button>
+                        </div>
                     </td>
                 </tr>
                 `;
@@ -539,6 +542,120 @@ boot();
                 loadAdminProducts(); // Refresh table
             } catch (err) {
                 alert("Failed to delete product");
+            }
+        }
+
+        // ── Edit Product ──
+        let editingProductId = null;
+        let editUploadedImages = [];
+
+        function openEditProduct(id) {
+            const p = adminProducts.find(x => x.id === id);
+            if (!p) return;
+            editingProductId = id;
+            editUploadedImages = (p.images && p.images.length) ? p.images.map((d, i) => ({ id: 'existing_' + i, data: d })) : [];
+
+            document.getElementById('eName').value = p.name || '';
+            document.getElementById('eCat').value = p.category || p.cat || '';
+            document.getElementById('eSizeType').value = p.size_type || 'none';
+            document.getElementById('ePrice').value = p.price || '';
+            document.getElementById('eBadge').value = p.badge || '';
+            document.getElementById('eStockTotal').value = p.stock_total || 0;
+            document.getElementById('eStockHo').value = p.stock_ho || 0;
+            document.getElementById('eStockAccra').value = p.stock_accra || 0;
+            calcEditUnassigned();
+
+            // Render existing image thumbnails
+            const container = document.getElementById('editImagePreviewContainer');
+            container.innerHTML = '';
+            editUploadedImages.forEach(imgObj => {
+                const div = document.createElement('div');
+                div.id = imgObj.id;
+                div.style.cssText = 'position:relative; width:68px; height:68px; border-radius:10px; overflow:hidden; border:1px solid var(--border); cursor:pointer;';
+                div.title = 'Click to remove';
+                div.innerHTML = `<img src="${imgObj.data}" style="width:100%;height:100%;object-fit:cover;"><div style="position:absolute;inset:0;background:rgba(0,0,0,0.1);"></div>`;
+                div.addEventListener('click', () => {
+                    div.remove();
+                    editUploadedImages = editUploadedImages.filter(x => x.id !== imgObj.id);
+                });
+                container.appendChild(div);
+            });
+
+            document.getElementById('editProductModal').style.display = 'flex';
+        }
+
+        function closeEditProductModal() {
+            document.getElementById('editProductModal').style.display = 'none';
+            editingProductId = null;
+            editUploadedImages = [];
+            document.getElementById('editImagePreviewContainer').innerHTML = '';
+        }
+
+        function calcEditUnassigned() {
+            const total = parseInt(document.getElementById('eStockTotal').value) || 0;
+            const ho = parseInt(document.getElementById('eStockHo').value) || 0;
+            const accra = parseInt(document.getElementById('eStockAccra').value) || 0;
+            document.getElementById('eStockUnassignedTxt').innerText = total - ho - accra;
+        }
+
+        async function handleEditImageSelection(e) {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+            for (let file of files) {
+                const previewId = 'eprev_' + Math.random().toString(36).substr(2, 9);
+                const previewDiv = document.createElement('div');
+                previewDiv.id = previewId;
+                previewDiv.style.cssText = 'position:relative; width:68px; height:68px; border-radius:10px; overflow:hidden; border:1px solid var(--border); background:#1e1e1e; cursor:pointer;';
+                previewDiv.title = 'Click to remove';
+                const img = document.createElement('img');
+                img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+                previewDiv.appendChild(img);
+                document.getElementById('editImagePreviewContainer').appendChild(previewDiv);
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const imgObj = new Image();
+                    imgObj.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = imgObj.width, h = imgObj.height;
+                        if (w > 800) { h = h * 800 / w; w = 800; }
+                        if (h > 800) { w = w * 800 / h; h = 800; }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(imgObj, 0, 0, w, h);
+                        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+                        img.src = base64;
+                        editUploadedImages.push({ id: previewId, data: base64 });
+                    };
+                    imgObj.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+                previewDiv.addEventListener('click', () => {
+                    previewDiv.remove();
+                    editUploadedImages = editUploadedImages.filter(x => x.id !== previewId);
+                });
+            }
+            e.target.value = '';
+        }
+
+        async function saveEditProduct() {
+            if (!editingProductId) return;
+            const name = document.getElementById('eName').value.trim();
+            const cat = document.getElementById('eCat').value;
+            const size_type = document.getElementById('eSizeType').value;
+            const price = parseFloat(document.getElementById('ePrice').value) || 0;
+            const badge = document.getElementById('eBadge').value;
+            const stock_total = parseInt(document.getElementById('eStockTotal').value) || 0;
+            const stock_ho = parseInt(document.getElementById('eStockHo').value) || 0;
+            const stock_accra = parseInt(document.getElementById('eStockAccra').value) || 0;
+            const stock_unassigned = stock_total - stock_ho - stock_accra;
+            if (!name || !cat) return alert('Product name and category are required!');
+            const images = editUploadedImages.map(img => img.data);
+            const payload = { name, category: cat, price, badge, size_type, images, stock_total, stock_ho, stock_accra, stock_unassigned };
+            try {
+                await apiFetch('PUT', `/products/${editingProductId}`, payload);
+                closeEditProductModal();
+                loadAdminProducts();
+            } catch (err) {
+                alert('Failed to update product: ' + err.message);
             }
         }
 
@@ -1372,3 +1489,4 @@ document.querySelector('[data-tab="settings"]').addEventListener('click', () => 
 
 // Also load immediately in case settings tab is already shown on boot
 loadSavedSettings();
+
