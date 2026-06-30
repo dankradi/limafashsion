@@ -855,7 +855,52 @@ async function loadAdminProducts() {
             adminProducts = adminProducts.filter(p => p.id !== id);
             localStorage.setItem('lime_products', JSON.stringify(adminProducts)); // Sync!
             renderAdminProducts(); // Refresh table
-        }
+        }  
+         // ---------- EDIT PRODUCT ----------
+let editProductId = null;
+
+function openEditProductModal(id) {
+    const p = adminProducts.find(product => product.id === id);
+
+    if (!p) return;
+
+    editProductId = id;
+
+    document.getElementById('eName').value = p.name || '';
+    document.getElementById('eCat').value = p.cat || '';
+    document.getElementById('ePrice').value = p.price || '';
+    document.getElementById('eBadge').value = p.badge || '';
+
+    document.getElementById('editProductModal').style.display = 'flex';
+}
+
+function closeEditProductModal() {
+    document.getElementById('editProductModal').style.display = 'none';
+    editProductId = null;
+}
+
+function saveEditedProduct() {
+
+    const product = adminProducts.find(p => p.id === editProductId);
+
+    if (!product) return;
+
+    product.name = document.getElementById('eName').value.trim();
+    product.cat = document.getElementById('eCat').value;
+    product.price = Number(document.getElementById('ePrice').value);
+    product.badge = document.getElementById('eBadge').value;
+
+    localStorage.setItem(
+        'lime_products',
+        JSON.stringify(adminProducts)
+    );
+
+    renderAdminProducts();
+
+    closeEditProductModal();
+}
+        
+        
 
         let uploadedImages = [];
 
