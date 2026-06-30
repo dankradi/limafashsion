@@ -340,6 +340,7 @@
                                 <th>Category</th>
                                 <th>Price</th>
                                 <th>Badge</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="adminProductsTable">
@@ -386,8 +387,67 @@
                     <button class="btn-lime" style="flex:1; padding: 12px; font-size:1rem;" onclick="saveNewProduct()">Save Product</button>
                     <button style="flex:1; background:transparent; color:white; border:1px solid var(--border); border-radius:var(--radius-pill); font-weight:700; cursor:pointer;" onclick="closeAddProductModal()">Cancel</button>
                 </div>
-            </div>
+               </div>
+</div>
+
+<!-- EDIT PRODUCT MODAL -->
+<div id="editProductModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:2100; align-items:center; justify-content:center; backdrop-filter:blur(6px);">
+    <div style="background:var(--dark2); padding:30px; border-radius:var(--radius-xl); width:420px; border:1px solid var(--border);">
+
+        <h3 style="font-family:var(--font-display); margin-bottom:20px;">
+            ✏️ Edit Product
+        </h3>
+
+        <input id="eName"
+               type="text"
+               placeholder="Product Name"
+               style="width:100%;margin-bottom:15px;padding:12px;background:var(--dark3);color:white;border:1px solid var(--border);border-radius:8px;">
+
+        <select id="eCat"
+                style="width:100%;margin-bottom:15px;padding:12px;background:var(--dark3);color:white;border:1px solid var(--border);border-radius:8px;">
+
+            <option value="WOMEN">Women's Collection</option>
+            <option value="MEN">Men's Collection</option>
+            <option value="CHILDREN">Children's Collection</option>
+
+        </select>
+
+        <input id="ePrice"
+               type="number"
+               placeholder="Price (GH₵)"
+               style="width:100%;margin-bottom:15px;padding:12px;background:var(--dark3);color:white;border:1px solid var(--border);border-radius:8px;">
+
+        <select id="eBadge"
+                style="width:100%;margin-bottom:20px;padding:12px;background:var(--dark3);color:white;border:1px solid var(--border);border-radius:8px;">
+
+            <option value="">No Badge</option>
+            <option value="NEW">NEW</option>
+            <option value="HOT">HOT</option>
+            <option value="BEST SELLER">BEST SELLER</option>
+
+        </select>
+
+        <div style="display:flex;gap:10px;">
+
+            <button class="btn-lime"
+                    style="flex:1;"
+                    onclick="saveEditedProduct()">
+                💾 Save Changes
+            </button>
+
+            <button
+                style="flex:1;"
+                onclick="closeEditProductModal()">
+                Cancel
+            </button>
+
         </div>
+
+    </div>
+</div>
+
+<!-- ==================== ORDERS TAB ==================== -->
+       
 
         <!-- ==================== ORDERS TAB ==================== -->
         <div id="tab-orders" class="admin-tab">
@@ -773,6 +833,19 @@ async function loadAdminProducts() {
                     <td style="color:var(--grey2);">${p.cat}</td>
                     <td style="color:var(--lime); font-weight:700;">GH₵ ${p.price}</td>
                     <td>${p.badge ? `<span class="diff-up">${p.badge}</span>` : '—'}</td>
+                    <td style="white-space:nowrap;">
+    <button
+        onclick="openEditProductModal(${p.id})"
+        style="background:#2563eb;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:0.82rem;font-weight:700;cursor:pointer;margin-right:6px;">
+        ✏️ Edit
+    </button>
+
+    <button
+        onclick="deleteProduct(${p.id})"
+        style="background:#ef4444;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:0.82rem;font-weight:700;cursor:pointer;">
+        🗑️ Delete
+    </button>
+</td>
                 </tr>
                 `;
             }).join('');
