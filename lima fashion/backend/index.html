@@ -341,6 +341,60 @@ select option { background-color: #1e1e1e; color: #ffffff; }
             </div>
         </div>
 
+        <!-- EDIT PRODUCT MODAL -->
+        <div id="editProductModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+            <div style="background: var(--dark2); padding: 30px; border-radius: var(--radius-xl); width: 400px; border: 1px solid var(--border); max-height:90vh; overflow-y:auto;">
+                <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 20px;">Edit Product</h3>
+                <input id="eName" type="text" placeholder="Product Name" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+
+                <div style="margin-bottom:15px;">
+                    <label style="color:var(--grey2); font-size:0.85rem; display:block; margin-bottom:8px;">Product Images</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                        <div style="width:68px; height:68px; background:#10B981; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; font-size:2rem; font-weight:300; transition:background 0.2s;" onclick="document.getElementById('eImage').click()" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10B981'">+</div>
+                        <div id="editImagePreviewContainer" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;"></div>
+                    </div>
+                    <input id="eImage" type="file" multiple accept="image/*" style="display:none;" onchange="handleEditImageSelection(event)">
+                    <span style="font-size:0.75rem; color:var(--grey); display:block; margin-top:8px;">Click an image to remove it. Add new images by clicking +</span>
+                </div>
+
+                <select id="eCat" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                    <option value="" disabled>Select Category</option>
+                    <option value="WOMEN">Women's Collection</option>
+                    <option value="MEN">Men's Collection</option>
+                    <option value="CHILDREN">Children's Collection</option>
+                </select>
+
+                <select id="eSizeType" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                    <option value="none">No Sizes</option>
+                    <option value="shoe">Shoe Sizes (EU)</option>
+                    <option value="dress">Dress Sizes (S, M, L, XL, XXL)</option>
+                </select>
+
+                <input id="ePrice" type="number" placeholder="Price (GH₵)" style="width:100%; margin-bottom:15px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <input id="eStockTotal" type="number" placeholder="Total Stock" style="flex:1; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); outline:none;" oninput="calcEditUnassigned()">
+                    <input id="eStockHo" type="number" placeholder="Ho Stock" style="flex:1; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); outline:none;" oninput="calcEditUnassigned()">
+                    <input id="eStockAccra" type="number" placeholder="Accra Stock" style="flex:1; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); outline:none;" oninput="calcEditUnassigned()">
+                </div>
+                <div style="margin-bottom:15px; font-size:0.85rem; color:var(--grey2);">
+                    Unassigned Stock: <strong id="eStockUnassignedTxt" style="color:var(--lime);">0</strong>
+                </div>
+
+                <select id="eBadge" style="width:100%; margin-bottom:25px; padding:12px; background:var(--dark3); color:white; border:1px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:1rem; outline:none;">
+                    <option value="">No Badge</option>
+                    <option value="NEW">NEW</option>
+                    <option value="HOT">HOT</option>
+                    <option value="BEST SELLER">BEST SELLER</option>
+                </select>
+
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-lime" style="flex:1; padding: 12px; font-size:1rem;" onclick="saveEditProduct()">Save Changes</button>
+                    <button style="flex:1; background:transparent; color:white; border:1px solid var(--border); border-radius:var(--radius-pill); font-weight:700; cursor:pointer;" onclick="closeEditProductModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
         
 <!-- ==================== PLUGINS TAB ==================== -->
         <div id="tab-plugins" class="tab-content">
@@ -804,3 +858,4 @@ select option { background-color: #1e1e1e; color: #ffffff; }
 <script src="superadmin.js?v=2"></script>
 </body>
 </html>
+
